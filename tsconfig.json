@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"target": "ES5",
+		"module": "commonjs",
+		"sourceMap": false,
+		"out": "bin/js/game.js",
+        "rootDir": "src",
+		"watch": true
+	}
+}
