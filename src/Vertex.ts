@@ -6,8 +6,8 @@ module VirtualCamera
 	{
 		
 		x: number;
-		public y: number;
-		public z: number;
+		y: number;
+		z: number;
 		
 		constructor(x: number, y: number, z: number)
 		{
