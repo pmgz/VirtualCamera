@@ -20,8 +20,8 @@ module VirtualCamera
 			console.log(camera);
 			this.add.existing(camera);
 			
-			this.add.existing(new BuildingSmall(this.game, this.graphics, 0, 0, 0));
-			this.add.existing(new BuildingSmall(this.game, this.graphics, 10, 10, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 100, 100, 100));
+			this.add.existing(new Cuboid(this.game, this.graphics, 150, 150, 150, 100, 100, 200));
 		}
 		
 		update()
@@ -33,6 +33,7 @@ module VirtualCamera
 		render()
 		{
 			this.game.debug.text('FPS: ' + this.game.time.fps.toString(), 5, 20, '#ffffff');
+			this.game.debug.text('Fov: ' + camera.fov.toString(), 5, 40, '#ffffff');
 		}
 	}
 }

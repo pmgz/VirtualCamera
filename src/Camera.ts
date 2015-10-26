@@ -20,7 +20,7 @@ module VirtualCamera
 		{
 			var a = 800 / 600;
 			var fov = this.fov;
-			/*var Znear = 0.1;
+			var Znear = 0.1;
 			var Zfar = 100;
 			var zm = Zfar - Znear;
 			var zp = Zfar + Znear;
@@ -31,9 +31,9 @@ module VirtualCamera
 				[0		 , y_scale , 0	   	, 0					 	 ],
 				[0		 , 0	   , -zp/zm , -(2 * Zfar * Znear)/zm ],
 				[0		 , 0	   , -1	   	, 0					 	 ]
-			]);*/
+			]);
 			
-			var n = 0.1;
+			/*var n = 0.1;
 			var f = 100;
 			var scale = Math.tan(fov * 0.5 * Math.PI / 180) * n;
 			var r = a * scale;
@@ -45,7 +45,7 @@ module VirtualCamera
 				[0		 , (2*n)/(t-b) , (t+b)/(t-b)	   	, 0					 	 ],
 				[0		 , 0	   , -(f+n)/(f-n) , -(2*f*n)/(f-n) ],
 				[0		 , 0	   , -1	   	, 0					 	 ]
-			]);
+			]);*/
 			
 			//this.projectionMatrix = math.transpose(this.projectionMatrix);
 		}
@@ -109,32 +109,32 @@ module VirtualCamera
 			
 			if (input.cursors.up.isDown)
 			{
-				this.translationMatrix._data[0][3] -= movementSpeed;
+				this.translationMatrix._data[2][3] -= movementSpeed;
 			}
 			
 			if (input.cursors.down.isDown)
 			{
-				this.translationMatrix._data[0][3] += movementSpeed;
+				this.translationMatrix._data[2][3] += movementSpeed;
 			}
 			
 			if (input.cursors.left.isDown)
 			{
-				this.translationMatrix._data[1][3] -= movementSpeed;
+				this.translationMatrix._data[0][3] -= movementSpeed;
 			}
 			
 			if (input.cursors.right.isDown)
 			{
-				this.translationMatrix._data[1][3] += movementSpeed;
+				this.translationMatrix._data[0][3] += movementSpeed;
 			}
 			
 			if (input.keyFlyUp.isDown)
 			{
-				this.translationMatrix._data[2][3] -= movementSpeed;
+				this.translationMatrix._data[1][3] -= movementSpeed;
 			}
 			
 			if (input.keyFlyDown.isDown)
 			{
-				this.translationMatrix._data[2][3] += movementSpeed;
+				this.translationMatrix._data[1][3] += movementSpeed;
 			}
 			
 			if (input.keyZoomIn.isDown)

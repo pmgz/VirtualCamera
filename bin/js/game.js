@@ -70,6 +70,137 @@ var VirtualCamera;
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 var VirtualCamera;
 (function (VirtualCamera) {
+    var Camera = (function (_super) {
+        __extends(Camera, _super);
+        function Camera(game) {
+            _super.call(this, game, 0, 0);
+            this.fov = 60;
+            this.rotationX = 0;
+            this.rotationY = 0;
+            this.rotationZ = 0;
+            this.translationMatrix = math.matrix([
+                [1, 0, 0, 20],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1],
+            ]);
+            this.updateProjectionMatrix();
+            this.updateRotationMatrices();
+            this.updateViewMatrix();
+        }
+        Camera.prototype.updateProjectionMatrix = function () {
+            var a = 800 / 600;
+            var fov = this.fov;
+            var Znear = 0.1;
+            var Zfar = 100;
+            var zm = Zfar - Znear;
+            var zp = Zfar + Znear;
+            var y_scale = math.cot((fov * 0.5) * (Math.PI / 180));
+            var x_scale = y_scale / a;
+            this.projectionMatrix = math.matrix([
+                [x_scale, 0, 0, 0],
+                [0, y_scale, 0, 0],
+                [0, 0, -zp / zm, -(2 * Zfar * Znear) / zm],
+                [0, 0, -1, 0]
+            ]);
+            /*var n = 0.1;
+            var f = 100;
+            var scale = Math.tan(fov * 0.5 * Math.PI / 180) * n;
+            var r = a * scale;
+            var l = -r;
+            var t = scale;
+            var b = -t;
+            this.projectionMatrix = math.matrix([
+                [(2*n)/(r-l) , 0	   , (r+l)/(r-l)	   	, 0					 	 ],
+                [0		 , (2*n)/(t-b) , (t+b)/(t-b)	   	, 0					 	 ],
+                [0		 , 0	   , -(f+n)/(f-n) , -(2*f*n)/(f-n) ],
+                [0		 , 0	   , -1	   	, 0					 	 ]
+            ]);*/
+            //this.projectionMatrix = math.transpose(this.projectionMatrix);
+        };
+        Camera.prototype.updateRotationMatrices = function () {
+            var angleX = this.rotationX * Math.PI / 180;
+            this.rotationXMatrix = math.matrix([
+                [1, 0, 0, 0],
+                [0, Math.cos(angleX), -Math.sin(angleX), 0],
+                [0, Math.sin(angleX), Math.cos(angleX), 0],
+                [0, 0, 0, 1]
+            ]);
+            var angleY = this.rotationY * Math.PI / 180;
+            this.rotationYMatrix = math.matrix([
+                [Math.cos(angleY), 0, Math.sin(angleY), 0],
+                [0, 1, 0, 0],
+                [-Math.sin(angleY), 0, Math.cos(angleY), 0],
+                [0, 0, 0, 1]
+            ]);
+            var angleZ = this.rotationZ * Math.PI / 180;
+            this.rotationZMatrix = math.matrix([
+                [Math.cos(angleZ), -Math.sin(angleZ), 0, 0],
+                [Math.sin(angleZ), Math.cos(angleZ), 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]
+            ]);
+        };
+        Camera.prototype.updateViewMatrix = function () {
+            this.viewMatrix = math.multiply(math.multiply(math.multiply(this.rotationXMatrix, this.rotationYMatrix), this.rotationZMatrix), this.translationMatrix);
+        };
+        Camera.prototype.update = function () {
+            var movementSpeed = 1;
+            var rotationSpeed = 1;
+            var zoomSpeed = 1;
+            if (VirtualCamera.input.cursors.up.isDown) {
+                this.translationMatrix._data[2][3] -= movementSpeed;
+            }
+            if (VirtualCamera.input.cursors.down.isDown) {
+                this.translationMatrix._data[2][3] += movementSpeed;
+            }
+            if (VirtualCamera.input.cursors.left.isDown) {
+                this.translationMatrix._data[0][3] -= movementSpeed;
+            }
+            if (VirtualCamera.input.cursors.right.isDown) {
+                this.translationMatrix._data[0][3] += movementSpeed;
+            }
+            if (VirtualCamera.input.keyFlyUp.isDown) {
+                this.translationMatrix._data[1][3] -= movementSpeed;
+            }
+            if (VirtualCamera.input.keyFlyDown.isDown) {
+                this.translationMatrix._data[1][3] += movementSpeed;
+            }
+            if (VirtualCamera.input.keyZoomIn.isDown) {
+                this.fov -= zoomSpeed;
+            }
+            if (VirtualCamera.input.keyZoomOut.isDown) {
+                this.fov += zoomSpeed;
+            }
+            if (VirtualCamera.input.keyRotateXLeft.isDown) {
+                this.rotationX -= rotationSpeed;
+            }
+            if (VirtualCamera.input.keyRotateXRight.isDown) {
+                this.rotationX += rotationSpeed;
+            }
+            if (VirtualCamera.input.keyRotateYLeft.isDown) {
+                this.rotationY -= rotationSpeed;
+            }
+            if (VirtualCamera.input.keyRotateYRight.isDown) {
+                this.rotationY += rotationSpeed;
+            }
+            if (VirtualCamera.input.keyRotateZLeft.isDown) {
+                this.rotationZ -= rotationSpeed;
+            }
+            if (VirtualCamera.input.keyRotateZRight.isDown) {
+                this.rotationZ += rotationSpeed;
+            }
+            this.updateProjectionMatrix();
+            this.updateRotationMatrices();
+            this.updateViewMatrix();
+        };
+        return Camera;
+    })(Phaser.Sprite);
+    VirtualCamera.Camera = Camera;
+})(VirtualCamera || (VirtualCamera = {}));
+/// <reference path="../tsDefinitions/phaser.d.ts" />
+var VirtualCamera;
+(function (VirtualCamera) {
     var SceneObject = (function (_super) {
         __extends(SceneObject, _super);
         function SceneObject(game, graphics, x, y, z) {
@@ -78,7 +209,6 @@ var VirtualCamera;
             this.graphics = graphics;
             this.vertices = new Array();
             this.edges = new Array();
-            //this.modelMatrix = math.eye(4);
             this.modelMatrix = math.matrix([
                 [1, 0, 0, x],
                 [0, 1, 0, y],
@@ -89,14 +219,7 @@ var VirtualCamera;
         SceneObject.prototype.create = function () {
         };
         SceneObject.prototype.update = function () {
-            //var mvp = math.multiply(camera.projectionViewMatrix, this.modelMatrix);
             var mvp = math.multiply(math.multiply(VirtualCamera.camera.projectionMatrix, VirtualCamera.camera.viewMatrix), this.modelMatrix);
-            /*if (this.log && camera.projectionViewMatrix != undefined)
-            {
-                    //console.log(camera.projectionViewMatrix);
-                    console.log(this.modelMatrix);
-                    this.log = false;
-            }*/
             var g = this.graphics;
             var v1, v2;
             for (var i = 0; i < this.edges.length; i++) {
@@ -138,18 +261,21 @@ var VirtualCamera;
 /// <reference path="SceneObject.ts" />
 var VirtualCamera;
 (function (VirtualCamera) {
-    var BuildingSmall = (function (_super) {
-        __extends(BuildingSmall, _super);
-        function BuildingSmall(game, graphics, x, y, z) {
+    var Cuboid = (function (_super) {
+        __extends(Cuboid, _super);
+        function Cuboid(game, graphics, x, y, z, x_size, y_size, z_size) {
             _super.call(this, game, graphics, x, y, z);
-            this.addVertex('v1', 20, 0, 0);
-            this.addVertex('v2', 40, 0, 0);
-            this.addVertex('v3', 40, 20, 0);
-            this.addVertex('v4', 20, 20, 0);
-            this.addVertex('v5', 20, 0, 20);
-            this.addVertex('v6', 40, 0, 20);
-            this.addVertex('v7', 40, 20, 20);
-            this.addVertex('v8', 20, 20, 20);
+            var x_size = 100;
+            var y_size = 100;
+            var z_size = 200;
+            this.addVertex('v1', 0, 0, 0);
+            this.addVertex('v2', x_size, 0, 0);
+            this.addVertex('v3', x_size, y_size, 0);
+            this.addVertex('v4', 0, y_size, 0);
+            this.addVertex('v5', 0, 0, z_size);
+            this.addVertex('v6', x_size, 0, z_size);
+            this.addVertex('v7', x_size, y_size, z_size);
+            this.addVertex('v8', 0, y_size, z_size);
             this.addEdge('v1', 'v2');
             this.addEdge('v2', 'v3');
             this.addEdge('v3', 'v4');
@@ -163,140 +289,9 @@ var VirtualCamera;
             this.addEdge('v3', 'v7');
             this.addEdge('v4', 'v8');
         }
-        return BuildingSmall;
+        return Cuboid;
     })(VirtualCamera.SceneObject);
-    VirtualCamera.BuildingSmall = BuildingSmall;
-})(VirtualCamera || (VirtualCamera = {}));
-/// <reference path="../tsDefinitions/phaser.d.ts" />
-var VirtualCamera;
-(function (VirtualCamera) {
-    var Camera = (function (_super) {
-        __extends(Camera, _super);
-        function Camera(game) {
-            _super.call(this, game, 0, 0);
-            this.fov = 60;
-            this.rotationX = 0;
-            this.rotationY = 0;
-            this.rotationZ = 0;
-            this.translationMatrix = math.matrix([
-                [1, 0, 0, 20],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1],
-            ]);
-            this.updateProjectionMatrix();
-            this.updateRotationMatrices();
-            this.updateViewMatrix();
-        }
-        Camera.prototype.updateProjectionMatrix = function () {
-            var a = 800 / 600;
-            var fov = this.fov;
-            /*var Znear = 0.1;
-            var Zfar = 100;
-            var zm = Zfar - Znear;
-            var zp = Zfar + Znear;
-            var y_scale = math.cot((fov * 0.5) * (Math.PI/180));
-            var x_scale = y_scale / a;
-            this.projectionMatrix = math.matrix([
-                [x_scale , 0	   , 0	   	, 0					 	 ],
-                [0		 , y_scale , 0	   	, 0					 	 ],
-                [0		 , 0	   , -zp/zm , -(2 * Zfar * Znear)/zm ],
-                [0		 , 0	   , -1	   	, 0					 	 ]
-            ]);*/
-            var n = 0.1;
-            var f = 100;
-            var scale = Math.tan(fov * 0.5 * Math.PI / 180) * n;
-            var r = a * scale;
-            var l = -r;
-            var t = scale;
-            var b = -t;
-            this.projectionMatrix = math.matrix([
-                [(2 * n) / (r - l), 0, (r + l) / (r - l), 0],
-                [0, (2 * n) / (t - b), (t + b) / (t - b), 0],
-                [0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n)],
-                [0, 0, -1, 0]
-            ]);
-            //this.projectionMatrix = math.transpose(this.projectionMatrix);
-        };
-        Camera.prototype.updateRotationMatrices = function () {
-            var angleX = this.rotationX * Math.PI / 180;
-            this.rotationXMatrix = math.matrix([
-                [1, 0, 0, 0],
-                [0, Math.cos(angleX), -Math.sin(angleX), 0],
-                [0, Math.sin(angleX), Math.cos(angleX), 0],
-                [0, 0, 0, 1]
-            ]);
-            var angleY = this.rotationY * Math.PI / 180;
-            this.rotationYMatrix = math.matrix([
-                [Math.cos(angleY), 0, Math.sin(angleY), 0],
-                [0, 1, 0, 0],
-                [-Math.sin(angleY), 0, Math.cos(angleY), 0],
-                [0, 0, 0, 1]
-            ]);
-            var angleZ = this.rotationZ * Math.PI / 180;
-            this.rotationZMatrix = math.matrix([
-                [Math.cos(angleZ), -Math.sin(angleZ), 0, 0],
-                [Math.sin(angleZ), Math.cos(angleZ), 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1]
-            ]);
-        };
-        Camera.prototype.updateViewMatrix = function () {
-            this.viewMatrix = math.multiply(math.multiply(math.multiply(this.rotationXMatrix, this.rotationYMatrix), this.rotationZMatrix), this.translationMatrix);
-        };
-        Camera.prototype.update = function () {
-            var movementSpeed = 1;
-            var rotationSpeed = 1;
-            var zoomSpeed = 1;
-            if (VirtualCamera.input.cursors.up.isDown) {
-                this.translationMatrix._data[0][3] -= movementSpeed;
-            }
-            if (VirtualCamera.input.cursors.down.isDown) {
-                this.translationMatrix._data[0][3] += movementSpeed;
-            }
-            if (VirtualCamera.input.cursors.left.isDown) {
-                this.translationMatrix._data[1][3] -= movementSpeed;
-            }
-            if (VirtualCamera.input.cursors.right.isDown) {
-                this.translationMatrix._data[1][3] += movementSpeed;
-            }
-            if (VirtualCamera.input.keyFlyUp.isDown) {
-                this.translationMatrix._data[2][3] -= movementSpeed;
-            }
-            if (VirtualCamera.input.keyFlyDown.isDown) {
-                this.translationMatrix._data[2][3] += movementSpeed;
-            }
-            if (VirtualCamera.input.keyZoomIn.isDown) {
-                this.fov -= zoomSpeed;
-            }
-            if (VirtualCamera.input.keyZoomOut.isDown) {
-                this.fov += zoomSpeed;
-            }
-            if (VirtualCamera.input.keyRotateXLeft.isDown) {
-                this.rotationX -= rotationSpeed;
-            }
-            if (VirtualCamera.input.keyRotateXRight.isDown) {
-                this.rotationX += rotationSpeed;
-            }
-            if (VirtualCamera.input.keyRotateYLeft.isDown) {
-                this.rotationY -= rotationSpeed;
-            }
-            if (VirtualCamera.input.keyRotateYRight.isDown) {
-                this.rotationY += rotationSpeed;
-            }
-            if (VirtualCamera.input.keyRotateZLeft.isDown) {
-                this.rotationZ -= rotationSpeed;
-            }
-            if (VirtualCamera.input.keyRotateZRight.isDown) {
-                this.rotationZ += rotationSpeed;
-            }
-            this.updateProjectionMatrix();
-            this.updateRotationMatrices();
-            this.updateViewMatrix();
-        };
-        return Camera;
-    })(Phaser.Sprite);
-    VirtualCamera.Camera = Camera;
+    VirtualCamera.Cuboid = Cuboid;
 })(VirtualCamera || (VirtualCamera = {}));
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 var VirtualCamera;
@@ -328,14 +323,15 @@ var VirtualCamera;
             VirtualCamera.camera = new VirtualCamera.Camera(this.game);
             console.log(VirtualCamera.camera);
             this.add.existing(VirtualCamera.camera);
-            this.add.existing(new VirtualCamera.BuildingSmall(this.game, this.graphics, 0, 0, 0));
-            this.add.existing(new VirtualCamera.BuildingSmall(this.game, this.graphics, 10, 10, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 0, 100, 100, 100));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 150, 150, 150, 100, 100, 200));
         };
         GameState.prototype.update = function () {
             this.graphics.clear();
         };
         GameState.prototype.render = function () {
             this.game.debug.text('FPS: ' + this.game.time.fps.toString(), 5, 20, '#ffffff');
+            this.game.debug.text('Fov: ' + VirtualCamera.camera.fov.toString(), 5, 40, '#ffffff');
         };
         return GameState;
     })(Phaser.State);

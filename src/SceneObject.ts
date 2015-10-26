@@ -16,7 +16,6 @@ module VirtualCamera
 			this.graphics = graphics;
 			this.vertices = new Array();
 			this.edges = new Array();
-			//this.modelMatrix = math.eye(4);
 			this.modelMatrix = math.matrix([
 				[1, 0, 0, x],
 				[0, 1, 0, y],
@@ -31,14 +30,7 @@ module VirtualCamera
 		
 		update()
 		{
-			//var mvp = math.multiply(camera.projectionViewMatrix, this.modelMatrix);
 			var mvp = math.multiply(math.multiply(camera.projectionMatrix, camera.viewMatrix), this.modelMatrix);
-			/*if (this.log && camera.projectionViewMatrix != undefined) 
-			{
-					//console.log(camera.projectionViewMatrix);
-					console.log(this.modelMatrix);
-					this.log = false;
-			}*/
 			
 			var g: Phaser.Graphics = this.graphics;
 			var v1: Vertex, v2: Vertex;
