@@ -9,10 +9,6 @@ module VirtualCamera
 		{
 			super(game, graphics, x, y, z);
             
-			var x_size = 100;
-			var y_size = 100;
-			var z_size = 200;
-			
             this.addVertex('v1', 0, 0, 0);
 			this.addVertex('v2', x_size, 0, 0);
 			this.addVertex('v3', x_size, y_size, 0);

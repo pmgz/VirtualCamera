@@ -9,31 +9,45 @@ module VirtualCamera
 	export class GameState extends Phaser.State
 	{
 		graphics: Phaser.Graphics;
-		offset: number = 0;
+		debugEntries: Array<string>;
 		
 		create()
 		{	
-			this.stage.backgroundColor =  0xFFFFFF;
+			this.stage.backgroundColor = 0xFFFFFF;
 			
 			this.graphics = this.game.add.graphics(300, 200);
 			camera = new Camera(this.game);
 			console.log(camera);
 			this.add.existing(camera);
 			
-			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 100, 100, 100));
-			this.add.existing(new Cuboid(this.game, this.graphics, 150, 150, 150, 100, 100, 200));
+			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 10, 50, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 15, 15, 15, 10, 10, 200));
+			
+			this.debugEntries = new Array<string>();
 		}
 		
 		update()
 		{
 			this.graphics.clear();
-
 		}
 		
 		render()
 		{
-			this.game.debug.text('FPS: ' + this.game.time.fps.toString(), 5, 20, '#ffffff');
-			this.game.debug.text('Fov: ' + camera.fov.toString(), 5, 40, '#ffffff');
+			this.debugEntries = [
+				'FPS: ' + this.game.time.fps,
+				'Fov: ' + camera.fov,
+				'X: ' + camera.translationMatrix._data[0][3],
+				'Y: ' + camera.translationMatrix._data[1][3],
+				'Z: ' + camera.translationMatrix._data[2][3],
+				'rotX: ' + camera.rotationX,
+				'rotY: ' + camera.rotationY,
+				'rotZ: ' + camera.rotationZ
+			];
+			
+			for (var i = 0; i < this.debugEntries.length; i++)
+			{
+				this.game.debug.text(this.debugEntries[i], 5, (i + 1) * 20, '#ffffff');
+			}
 		}
 	}
 }

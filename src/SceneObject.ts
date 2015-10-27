@@ -44,13 +44,11 @@ module VirtualCamera
 				
 				if (this.log)
 				{
-					console.log(v1n);
-					console.log(v2n);
-					console.log(i);
-					//console.log(mvp);
+					//console.log(v1n);
+					//console.log(v2n);
+					//console.log(i);
+					console.log(this.vertices);
 					this.log--;
-					//console.log(v1n._data[2]);
-					//console.log(v1n._data[3]);
 				}
 				
 				g.lineStyle(1, 0x000000, 1);
@@ -64,8 +62,8 @@ module VirtualCamera
 					v2n._data[0] /= v2n._data[3];
 					v2n._data[1] /= v2n._data[3];
 				}
-				g.moveTo(v1n._data[0], v1n._data[1]);  
-				g.lineTo(v2n._data[0], v2n._data[1]);
+				g.moveTo(v1n._data[0] * Game.WIDTH, v1n._data[1] * Game.HEIGHT);  
+				g.lineTo(v2n._data[0] * Game.WIDTH, v2n._data[1] * Game.HEIGHT);
 			}
 		}
 		

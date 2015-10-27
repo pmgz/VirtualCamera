@@ -5,7 +5,6 @@ module VirtualCamera
 	export class Input
 	{
 		cursors: Phaser.CursorKeys;
-		keyJump: Phaser.Key;
 		keyFullscreen: Phaser.Key;
 		keyFlyUp: Phaser.Key;
 		keyFlyDown: Phaser.Key;
@@ -17,11 +16,12 @@ module VirtualCamera
 		keyRotateYRight: Phaser.Key;
 		keyRotateZLeft: Phaser.Key;
 		keyRotateZRight: Phaser.Key;
+		keyResetRotation: Phaser.Key;
 		
 		constructor(game: Phaser.Game)
 		{
 			this.cursors = game.input.keyboard.createCursorKeys();
-			this.keyJump = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+			this.keyResetRotation = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 			this.keyFullscreen = game.input.keyboard.addKey(Phaser.Keyboard.F);
 			this.keyFlyUp = game.input.keyboard.addKey(Phaser.Keyboard.Q);
 			this.keyFlyDown = game.input.keyboard.addKey(Phaser.Keyboard.E);

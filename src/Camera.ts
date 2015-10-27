@@ -32,22 +32,6 @@ module VirtualCamera
 				[0		 , 0	   , -zp/zm , -(2 * Zfar * Znear)/zm ],
 				[0		 , 0	   , -1	   	, 0					 	 ]
 			]);
-			
-			/*var n = 0.1;
-			var f = 100;
-			var scale = Math.tan(fov * 0.5 * Math.PI / 180) * n;
-			var r = a * scale;
-			var l = -r;
-			var t = scale;
-			var b = -t; 
-			this.projectionMatrix = math.matrix([
-				[(2*n)/(r-l) , 0	   , (r+l)/(r-l)	   	, 0					 	 ],
-				[0		 , (2*n)/(t-b) , (t+b)/(t-b)	   	, 0					 	 ],
-				[0		 , 0	   , -(f+n)/(f-n) , -(2*f*n)/(f-n) ],
-				[0		 , 0	   , -1	   	, 0					 	 ]
-			]);*/
-			
-			//this.projectionMatrix = math.transpose(this.projectionMatrix);
 		}
 		
 		updateRotationMatrices()
@@ -108,23 +92,31 @@ module VirtualCamera
 			var zoomSpeed = 1;
 			
 			if (input.cursors.up.isDown)
-			{
-				this.translationMatrix._data[2][3] -= movementSpeed;
+			{			
+				var angle = (this.rotationY - 90) * Math.PI / 180;
+				this.translationMatrix._data[0][3] += movementSpeed * Math.cos(angle);
+				this.translationMatrix._data[2][3] += movementSpeed * Math.sin(angle);
 			}
 			
 			if (input.cursors.down.isDown)
 			{
-				this.translationMatrix._data[2][3] += movementSpeed;
+				var angle = (this.rotationY - 270) * Math.PI / 180;
+				this.translationMatrix._data[0][3] += movementSpeed * Math.cos(angle);
+				this.translationMatrix._data[2][3] += movementSpeed * Math.sin(angle);
 			}
 			
 			if (input.cursors.left.isDown)
 			{
-				this.translationMatrix._data[0][3] -= movementSpeed;
+				var angle = (this.rotationY - 180) * Math.PI / 180;
+				this.translationMatrix._data[0][3] += movementSpeed * Math.cos(angle);
+				this.translationMatrix._data[2][3] += movementSpeed * Math.sin(angle);
 			}
 			
 			if (input.cursors.right.isDown)
 			{
-				this.translationMatrix._data[0][3] += movementSpeed;
+				var angle = this.rotationY * Math.PI / 180;
+				this.translationMatrix._data[0][3] += movementSpeed * Math.cos(angle);
+				this.translationMatrix._data[2][3] += movementSpeed * Math.sin(angle);
 			}
 			
 			if (input.keyFlyUp.isDown)
@@ -175,6 +167,12 @@ module VirtualCamera
 			if (input.keyRotateZRight.isDown)
 			{
 				this.rotationZ += rotationSpeed;
+			}
+			
+			if (input.keyResetRotation.justDown)
+			{
+				this.rotationX = 0;
+				this.rotationZ = 0;
 			}
 			
 			this.updateProjectionMatrix();
