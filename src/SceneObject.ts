@@ -1,4 +1,5 @@
 /// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="Camera.ts" />
 
 module VirtualCamera
 {	
@@ -7,21 +8,42 @@ module VirtualCamera
 		graphics: Phaser.Graphics;
 		vertices: Array<Vertex>;
 		edges: Array<Edge>;
-		modelMatrix: any;
-		log: number = 12;
 		
-		constructor(game: Phaser.Game, graphics: Phaser.Graphics, x: number, y: number, z: number)
+		rotationX: number = 0;
+		rotationY: number = 0;
+		rotationZ: number = 0;
+		
+		rotationXMatrix: any;
+		rotationYMatrix: any;
+		rotationZMatrix: any;
+		translationMatrix: any;
+		modelMatrix: any;
+		
+		constructor(
+			game: Phaser.Game, 
+			graphics: Phaser.Graphics, 
+			x: number, 
+			y: number, 
+			z: number,
+			x_rot: number = 0,
+			y_rot: number = 0,
+			z_rot: number = 0)
 		{
 			super(game, 0, 0);
 			this.graphics = graphics;
 			this.vertices = new Array();
 			this.edges = new Array();
-			this.modelMatrix = math.matrix([
+			this.translationMatrix = math.matrix([
 				[1, 0, 0, x],
 				[0, 1, 0, y],
 				[0, 0, 1, z],
 				[0, 0, 0, 1]
 			]);
+			this.rotationX = x_rot;
+			this.rotationY = y_rot;
+			this.rotationZ = z_rot;
+			this.updateRotationMatrices();
+			this.updateModelMatrix();
 		}
 		
 		create()
@@ -30,7 +52,7 @@ module VirtualCamera
 		
 		update()
 		{
-			var mvp = math.multiply(math.multiply(camera.projectionMatrix, camera.viewMatrix), this.modelMatrix);
+			var mvp = math.multiply(math.multiply(camera.projectionMatrix, camera.modelMatrix), this.modelMatrix);
 			
 			var g: Phaser.Graphics = this.graphics;
 			var v1: Vertex, v2: Vertex;
@@ -66,6 +88,41 @@ module VirtualCamera
 		addEdge(vertex1: string, vertex2: string)
 		{
 			this.edges.push(new Edge(vertex1, vertex2));
+		}
+		
+		updateRotationMatrices()
+		{
+			var angleX = this.rotationX * Math.PI / 180;
+			this.rotationXMatrix = math.matrix([
+				[1, 0, 0, 0],
+				[0, Math.cos(angleX), -Math.sin(angleX), 0],
+				[0, Math.sin(angleX), Math.cos(angleX), 0],
+				[0, 0, 0, 1]
+			]);
+			
+			var angleY = this.rotationY * Math.PI / 180;
+			this.rotationYMatrix = math.matrix([
+				[Math.cos(angleY), 0, Math.sin(angleY), 0],
+				[0, 1, 0, 0],
+				[-Math.sin(angleY), 0, Math.cos(angleY), 0],
+				[0, 0, 0, 1]
+			]);
+			
+			var angleZ = this.rotationZ * Math.PI / 180;
+			this.rotationZMatrix = math.matrix([
+				[Math.cos(angleZ), -Math.sin(angleZ), 0, 0],
+				[Math.sin(angleZ), Math.cos(angleZ), 0, 0],
+				[0, 0, 1, 0],
+				[0, 0, 0, 1]
+			]);
+		}
+		
+		updateModelMatrix()
+		{
+			this.modelMatrix = math.multiply(this.translationMatrix,
+								math.multiply(
+									math.multiply(this.rotationXMatrix, this.rotationYMatrix), 
+										this.rotationZMatrix));
 		}
 	}
 }

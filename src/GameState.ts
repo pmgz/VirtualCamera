@@ -16,13 +16,13 @@ module VirtualCamera
 			this.stage.backgroundColor = 0xFFFFFF;
 			
 			this.graphics = this.game.add.graphics(300, 200);
-			camera = new Camera(this.game);
+			camera = new Camera(this.game, -88, -67, 118, -12, 19, 0);
 			this.add.existing(camera);
 			
 			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 10, 20, 10));
-			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10, 0, 16));
 			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 30, 10, 30, 10));
-			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10, 0, 45));
 			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 15, 10, 17, 10));
 			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 30, 10, 8, 10));
 			this.add.existing(new Plane(this.game, this.graphics, 13, 0, -10, 10, 60));

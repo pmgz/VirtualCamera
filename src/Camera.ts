@@ -1,20 +1,12 @@
 /// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="SceneObject.ts" />
 
 module VirtualCamera
 {	
-	export class Camera extends Phaser.Sprite
+	export class Camera extends SceneObject
 	{
-		rotationXMatrix: any;
-		rotationYMatrix: any;
-		rotationZMatrix: any;
-		translationMatrix: any;
-		viewMatrix: any;
 		projectionMatrix: any;
-		projectionViewMatrix: any;
 		fov: number = 60;
-		rotationX: number = -12;
-		rotationY: number = 19;
-		rotationZ: number = 0;
 		
 		updateProjectionMatrix()
 		{
@@ -34,55 +26,20 @@ module VirtualCamera
 			]);
 		}
 		
-		updateRotationMatrices()
+		
+		constructor(game: Phaser.Game, x: number, y: number, z: number, x_rot: number, y_rot: number, z_rot: number)
 		{
-			var angleX = this.rotationX * Math.PI / 180;
-			this.rotationXMatrix = math.matrix([
-				[1, 0, 0, 0],
-				[0, Math.cos(angleX), -Math.sin(angleX), 0],
-				[0, Math.sin(angleX), Math.cos(angleX), 0],
-				[0, 0, 0, 1]
-			]);
-			
-			var angleY = this.rotationY * Math.PI / 180;
-			this.rotationYMatrix = math.matrix([
-				[Math.cos(angleY), 0, Math.sin(angleY), 0],
-				[0, 1, 0, 0],
-				[-Math.sin(angleY), 0, Math.cos(angleY), 0],
-				[0, 0, 0, 1]
-			]);
-			
-			var angleZ = this.rotationZ * Math.PI / 180;
-			this.rotationZMatrix = math.matrix([
-				[Math.cos(angleZ), -Math.sin(angleZ), 0, 0],
-				[Math.sin(angleZ), Math.cos(angleZ), 0, 0],
-				[0, 0, 1, 0],
-				[0, 0, 0, 1]
-			]);
+			super(game, null, x, y, z, x_rot, y_rot, z_rot);
+			this.updateProjectionMatrix();
 		}
 		
-		updateViewMatrix()
+		updateModelMatrix()
 		{
-			this.viewMatrix = math.multiply(
+			this.modelMatrix = math.multiply(
 								math.multiply(
 									math.multiply(this.rotationXMatrix, this.rotationYMatrix), 
 										this.rotationZMatrix),
 											this.translationMatrix);
-		}
-		
-		constructor(game: Phaser.Game)
-		{
-			super(game, 0, 0);
-			
-			this.translationMatrix = math.matrix([
-				[1, 0, 0, -88 ],
-				[0, 1, 0, -67 ],
-				[0, 0, 1, 118 ],
-				[0, 0, 0, 1 ],
-			]);
-			this.updateProjectionMatrix();
-			this.updateRotationMatrices();
-			this.updateViewMatrix();
 		}
 		
 		update()
@@ -177,7 +134,7 @@ module VirtualCamera
 			
 			this.updateProjectionMatrix();
 			this.updateRotationMatrices();
-			this.updateViewMatrix();
+			this.updateModelMatrix();
 		}
 	}
 }

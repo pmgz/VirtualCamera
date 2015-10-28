@@ -5,9 +5,20 @@ module VirtualCamera
 {
     export class Cuboid extends SceneObject
 	{
-        constructor(game: Phaser.Game, graphics: Phaser.Graphics, x: number, y: number, z: number, x_size: number, y_size: number, z_size: number)
+        constructor(
+			game: Phaser.Game, 
+			graphics: Phaser.Graphics, 
+			x: number, 
+			y: number, 
+			z: number, 
+			x_size: number, 
+			y_size: number, 
+			z_size: number,
+			x_rot: number = 0,
+			y_rot: number = 0,
+			z_rot: number = 0)
 		{
-			super(game, graphics, x, y, z);
+			super(game, graphics, x, y, z, x_rot, y_rot, z_rot);
             
             this.addVertex('v1', 0, 0, 0);
 			this.addVertex('v2', x_size, 0, 0);

@@ -68,43 +68,65 @@ var VirtualCamera;
     VirtualCamera.Boot = Boot;
 })(VirtualCamera || (VirtualCamera = {}));
 /// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="Camera.ts" />
 var VirtualCamera;
 (function (VirtualCamera) {
-    var Camera = (function (_super) {
-        __extends(Camera, _super);
-        function Camera(game) {
+    var SceneObject = (function (_super) {
+        __extends(SceneObject, _super);
+        function SceneObject(game, graphics, x, y, z, x_rot, y_rot, z_rot) {
+            if (x_rot === void 0) { x_rot = 0; }
+            if (y_rot === void 0) { y_rot = 0; }
+            if (z_rot === void 0) { z_rot = 0; }
             _super.call(this, game, 0, 0);
-            this.fov = 60;
-            this.rotationX = -12;
-            this.rotationY = 19;
+            this.rotationX = 0;
+            this.rotationY = 0;
             this.rotationZ = 0;
+            this.graphics = graphics;
+            this.vertices = new Array();
+            this.edges = new Array();
             this.translationMatrix = math.matrix([
-                [1, 0, 0, -88],
-                [0, 1, 0, -67],
-                [0, 0, 1, 118],
-                [0, 0, 0, 1],
+                [1, 0, 0, x],
+                [0, 1, 0, y],
+                [0, 0, 1, z],
+                [0, 0, 0, 1]
             ]);
-            this.updateProjectionMatrix();
+            this.rotationX = x_rot;
+            this.rotationY = y_rot;
+            this.rotationZ = z_rot;
             this.updateRotationMatrices();
-            this.updateViewMatrix();
+            this.updateModelMatrix();
         }
-        Camera.prototype.updateProjectionMatrix = function () {
-            var a = VirtualCamera.Game.WIDTH / VirtualCamera.Game.HEIGHT;
-            var fov = this.fov;
-            var Znear = 0.1;
-            var Zfar = 100;
-            var zm = Zfar - Znear;
-            var zp = Zfar + Znear;
-            var y_scale = math.cot((fov * 0.5) * (Math.PI / 180));
-            var x_scale = y_scale / a;
-            this.projectionMatrix = math.matrix([
-                [x_scale, 0, 0, 0],
-                [0, y_scale, 0, 0],
-                [0, 0, -zp / zm, -(2 * Zfar * Znear) / zm],
-                [0, 0, -1, 0]
-            ]);
+        SceneObject.prototype.create = function () {
         };
-        Camera.prototype.updateRotationMatrices = function () {
+        SceneObject.prototype.update = function () {
+            var mvp = math.multiply(math.multiply(VirtualCamera.camera.projectionMatrix, VirtualCamera.camera.modelMatrix), this.modelMatrix);
+            var g = this.graphics;
+            var v1, v2;
+            for (var i = 0; i < this.edges.length; i++) {
+                v1 = this.vertices[this.edges[i].vertex1];
+                v2 = this.vertices[this.edges[i].vertex2];
+                var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
+                var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
+                g.lineStyle(1, 0x000000, 1);
+                if (v1n._data[3] != 1) {
+                    v1n._data[0] /= v1n._data[3];
+                    v1n._data[1] /= v1n._data[3];
+                }
+                if (v2n._data[3] != 1) {
+                    v2n._data[0] /= v2n._data[3];
+                    v2n._data[1] /= v2n._data[3];
+                }
+                g.moveTo(v1n._data[0] * VirtualCamera.Game.WIDTH, v1n._data[1] * VirtualCamera.Game.HEIGHT);
+                g.lineTo(v2n._data[0] * VirtualCamera.Game.WIDTH, v2n._data[1] * VirtualCamera.Game.HEIGHT);
+            }
+        };
+        SceneObject.prototype.addVertex = function (name, x, y, z) {
+            this.vertices[name] = new VirtualCamera.Vertex(x, y, z);
+        };
+        SceneObject.prototype.addEdge = function (vertex1, vertex2) {
+            this.edges.push(new VirtualCamera.Edge(vertex1, vertex2));
+        };
+        SceneObject.prototype.updateRotationMatrices = function () {
             var angleX = this.rotationX * Math.PI / 180;
             this.rotationXMatrix = math.matrix([
                 [1, 0, 0, 0],
@@ -127,8 +149,42 @@ var VirtualCamera;
                 [0, 0, 0, 1]
             ]);
         };
-        Camera.prototype.updateViewMatrix = function () {
-            this.viewMatrix = math.multiply(math.multiply(math.multiply(this.rotationXMatrix, this.rotationYMatrix), this.rotationZMatrix), this.translationMatrix);
+        SceneObject.prototype.updateModelMatrix = function () {
+            this.modelMatrix = math.multiply(this.translationMatrix, math.multiply(math.multiply(this.rotationXMatrix, this.rotationYMatrix), this.rotationZMatrix));
+        };
+        return SceneObject;
+    })(Phaser.Sprite);
+    VirtualCamera.SceneObject = SceneObject;
+})(VirtualCamera || (VirtualCamera = {}));
+/// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="SceneObject.ts" />
+var VirtualCamera;
+(function (VirtualCamera) {
+    var Camera = (function (_super) {
+        __extends(Camera, _super);
+        function Camera(game, x, y, z, x_rot, y_rot, z_rot) {
+            _super.call(this, game, null, x, y, z, x_rot, y_rot, z_rot);
+            this.fov = 60;
+            this.updateProjectionMatrix();
+        }
+        Camera.prototype.updateProjectionMatrix = function () {
+            var a = VirtualCamera.Game.WIDTH / VirtualCamera.Game.HEIGHT;
+            var fov = this.fov;
+            var Znear = 0.1;
+            var Zfar = 100;
+            var zm = Zfar - Znear;
+            var zp = Zfar + Znear;
+            var y_scale = math.cot((fov * 0.5) * (Math.PI / 180));
+            var x_scale = y_scale / a;
+            this.projectionMatrix = math.matrix([
+                [x_scale, 0, 0, 0],
+                [0, y_scale, 0, 0],
+                [0, 0, -zp / zm, -(2 * Zfar * Znear) / zm],
+                [0, 0, -1, 0]
+            ]);
+        };
+        Camera.prototype.updateModelMatrix = function () {
+            this.modelMatrix = math.multiply(math.multiply(math.multiply(this.rotationXMatrix, this.rotationYMatrix), this.rotationZMatrix), this.translationMatrix);
         };
         Camera.prototype.update = function () {
             var movementSpeed = 1;
@@ -190,63 +246,11 @@ var VirtualCamera;
             }
             this.updateProjectionMatrix();
             this.updateRotationMatrices();
-            this.updateViewMatrix();
+            this.updateModelMatrix();
         };
         return Camera;
-    })(Phaser.Sprite);
+    })(VirtualCamera.SceneObject);
     VirtualCamera.Camera = Camera;
-})(VirtualCamera || (VirtualCamera = {}));
-/// <reference path="../tsDefinitions/phaser.d.ts" />
-var VirtualCamera;
-(function (VirtualCamera) {
-    var SceneObject = (function (_super) {
-        __extends(SceneObject, _super);
-        function SceneObject(game, graphics, x, y, z) {
-            _super.call(this, game, 0, 0);
-            this.log = 12;
-            this.graphics = graphics;
-            this.vertices = new Array();
-            this.edges = new Array();
-            this.modelMatrix = math.matrix([
-                [1, 0, 0, x],
-                [0, 1, 0, y],
-                [0, 0, 1, z],
-                [0, 0, 0, 1]
-            ]);
-        }
-        SceneObject.prototype.create = function () {
-        };
-        SceneObject.prototype.update = function () {
-            var mvp = math.multiply(math.multiply(VirtualCamera.camera.projectionMatrix, VirtualCamera.camera.viewMatrix), this.modelMatrix);
-            var g = this.graphics;
-            var v1, v2;
-            for (var i = 0; i < this.edges.length; i++) {
-                v1 = this.vertices[this.edges[i].vertex1];
-                v2 = this.vertices[this.edges[i].vertex2];
-                var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
-                var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
-                g.lineStyle(1, 0x000000, 1);
-                if (v1n._data[3] != 1) {
-                    v1n._data[0] /= v1n._data[3];
-                    v1n._data[1] /= v1n._data[3];
-                }
-                if (v2n._data[3] != 1) {
-                    v2n._data[0] /= v2n._data[3];
-                    v2n._data[1] /= v2n._data[3];
-                }
-                g.moveTo(v1n._data[0] * VirtualCamera.Game.WIDTH, v1n._data[1] * VirtualCamera.Game.HEIGHT);
-                g.lineTo(v2n._data[0] * VirtualCamera.Game.WIDTH, v2n._data[1] * VirtualCamera.Game.HEIGHT);
-            }
-        };
-        SceneObject.prototype.addVertex = function (name, x, y, z) {
-            this.vertices[name] = new VirtualCamera.Vertex(x, y, z);
-        };
-        SceneObject.prototype.addEdge = function (vertex1, vertex2) {
-            this.edges.push(new VirtualCamera.Edge(vertex1, vertex2));
-        };
-        return SceneObject;
-    })(Phaser.Sprite);
-    VirtualCamera.SceneObject = SceneObject;
 })(VirtualCamera || (VirtualCamera = {}));
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 /// <reference path="SceneObject.ts" />
@@ -254,8 +258,11 @@ var VirtualCamera;
 (function (VirtualCamera) {
     var Cuboid = (function (_super) {
         __extends(Cuboid, _super);
-        function Cuboid(game, graphics, x, y, z, x_size, y_size, z_size) {
-            _super.call(this, game, graphics, x, y, z);
+        function Cuboid(game, graphics, x, y, z, x_size, y_size, z_size, x_rot, y_rot, z_rot) {
+            if (x_rot === void 0) { x_rot = 0; }
+            if (y_rot === void 0) { y_rot = 0; }
+            if (z_rot === void 0) { z_rot = 0; }
+            _super.call(this, game, graphics, x, y, z, x_rot, y_rot, z_rot);
             this.addVertex('v1', 0, 0, 0);
             this.addVertex('v2', x_size, 0, 0);
             this.addVertex('v3', x_size, y_size, 0);
@@ -307,12 +314,12 @@ var VirtualCamera;
         GameState.prototype.create = function () {
             this.stage.backgroundColor = 0xFFFFFF;
             this.graphics = this.game.add.graphics(300, 200);
-            VirtualCamera.camera = new VirtualCamera.Camera(this.game);
+            VirtualCamera.camera = new VirtualCamera.Camera(this.game, -88, -67, 118, -12, 19, 0);
             this.add.existing(VirtualCamera.camera);
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 0, 10, 20, 10));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10, 0, 16));
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 30, 10, 30, 10));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10, 0, 45));
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 15, 10, 17, 10));
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 30, 10, 8, 10));
             this.add.existing(new VirtualCamera.Plane(this.game, this.graphics, 13, 0, -10, 10, 60));
@@ -384,8 +391,11 @@ var VirtualCamera;
 (function (VirtualCamera) {
     var Plane = (function (_super) {
         __extends(Plane, _super);
-        function Plane(game, graphics, x, y, z, x_size, z_size) {
-            _super.call(this, game, graphics, x, y, z);
+        function Plane(game, graphics, x, y, z, x_size, z_size, x_rot, y_rot, z_rot) {
+            if (x_rot === void 0) { x_rot = 0; }
+            if (y_rot === void 0) { y_rot = 0; }
+            if (z_rot === void 0) { z_rot = 0; }
+            _super.call(this, game, graphics, x, y, z, x_rot, y_rot, z_rot);
             this.addVertex('v1', 0, 0, 0);
             this.addVertex('v2', x_size, 0, 0);
             this.addVertex('v3', x_size, 0, z_size);
