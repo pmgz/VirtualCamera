@@ -17,11 +17,36 @@ module VirtualCamera
 			
 			this.graphics = this.game.add.graphics(300, 200);
 			camera = new Camera(this.game);
-			console.log(camera);
 			this.add.existing(camera);
 			
-			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 10, 50, 10));
-			this.add.existing(new Cuboid(this.game, this.graphics, 15, 15, 15, 10, 10, 200));
+			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 10, 20, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 30, 10, 30, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 15, 10, 17, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 30, 10, 8, 10));
+			this.add.existing(new Plane(this.game, this.graphics, 13, 0, -10, 10, 60));
+			this.add.existing(new Plane(this.game, this.graphics, 27, 0, -10, 10, 60));
+			
+			var tree_z = 0;
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z -2, 5, 5, 5));
+			
+			tree_z = 10;
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z -2, 5, 5, 5));
+			
+			tree_z = 20;
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z -2, 5, 5, 5));
+			
+			tree_z = 30;
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z -2, 5, 5, 5));
+			
+			tree_z = 40;
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+			this.add.existing(new Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z -2, 5, 5, 5));
 			
 			this.debugEntries = new Array<string>();
 		}

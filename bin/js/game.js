@@ -75,13 +75,13 @@ var VirtualCamera;
         function Camera(game) {
             _super.call(this, game, 0, 0);
             this.fov = 60;
-            this.rotationX = 0;
-            this.rotationY = 0;
+            this.rotationX = -12;
+            this.rotationY = 19;
             this.rotationZ = 0;
             this.translationMatrix = math.matrix([
-                [1, 0, 0, 20],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
+                [1, 0, 0, -88],
+                [0, 1, 0, -67],
+                [0, 0, 1, 118],
                 [0, 0, 0, 1],
             ]);
             this.updateProjectionMatrix();
@@ -89,7 +89,7 @@ var VirtualCamera;
             this.updateViewMatrix();
         }
         Camera.prototype.updateProjectionMatrix = function () {
-            var a = 800 / 600;
+            var a = VirtualCamera.Game.WIDTH / VirtualCamera.Game.HEIGHT;
             var fov = this.fov;
             var Znear = 0.1;
             var Zfar = 100;
@@ -225,13 +225,6 @@ var VirtualCamera;
                 v2 = this.vertices[this.edges[i].vertex2];
                 var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
                 var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
-                if (this.log) {
-                    //console.log(v1n);
-                    //console.log(v2n);
-                    //console.log(i);
-                    console.log(this.vertices);
-                    this.log--;
-                }
                 g.lineStyle(1, 0x000000, 1);
                 if (v1n._data[3] != 1) {
                     v1n._data[0] /= v1n._data[3];
@@ -315,10 +308,30 @@ var VirtualCamera;
             this.stage.backgroundColor = 0xFFFFFF;
             this.graphics = this.game.add.graphics(300, 200);
             VirtualCamera.camera = new VirtualCamera.Camera(this.game);
-            console.log(VirtualCamera.camera);
             this.add.existing(VirtualCamera.camera);
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 0, 10, 50, 10));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 15, 15, 15, 10, 10, 200));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 0, 10, 20, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 30, 10, 30, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 15, 10, 17, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 30, 10, 8, 10));
+            this.add.existing(new VirtualCamera.Plane(this.game, this.graphics, 13, 0, -10, 10, 60));
+            this.add.existing(new VirtualCamera.Plane(this.game, this.graphics, 27, 0, -10, 10, 60));
+            var tree_z = 0;
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
+            tree_z = 10;
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
+            tree_z = 20;
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
+            tree_z = 30;
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
+            tree_z = 40;
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
             this.debugEntries = new Array();
         };
         GameState.prototype.update = function () {
@@ -365,6 +378,27 @@ var VirtualCamera;
 window.onload = function () {
     var game = new VirtualCamera.Game();
 };
+/// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="SceneObject.ts" />
+var VirtualCamera;
+(function (VirtualCamera) {
+    var Plane = (function (_super) {
+        __extends(Plane, _super);
+        function Plane(game, graphics, x, y, z, x_size, z_size) {
+            _super.call(this, game, graphics, x, y, z);
+            this.addVertex('v1', 0, 0, 0);
+            this.addVertex('v2', x_size, 0, 0);
+            this.addVertex('v3', x_size, 0, z_size);
+            this.addVertex('v4', 0, 0, z_size);
+            this.addEdge('v1', 'v2');
+            this.addEdge('v2', 'v3');
+            this.addEdge('v3', 'v4');
+            this.addEdge('v4', 'v1');
+        }
+        return Plane;
+    })(VirtualCamera.SceneObject);
+    VirtualCamera.Plane = Plane;
+})(VirtualCamera || (VirtualCamera = {}));
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 var VirtualCamera;
 (function (VirtualCamera) {

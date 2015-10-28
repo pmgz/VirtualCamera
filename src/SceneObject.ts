@@ -42,15 +42,6 @@ module VirtualCamera
 				var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
 				var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
 				
-				if (this.log)
-				{
-					//console.log(v1n);
-					//console.log(v2n);
-					//console.log(i);
-					console.log(this.vertices);
-					this.log--;
-				}
-				
 				g.lineStyle(1, 0x000000, 1);
 				if (v1n._data[3] != 1)
 				{

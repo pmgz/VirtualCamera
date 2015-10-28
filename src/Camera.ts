@@ -12,13 +12,13 @@ module VirtualCamera
 		projectionMatrix: any;
 		projectionViewMatrix: any;
 		fov: number = 60;
-		rotationX: number = 0;
-		rotationY: number = 0;
+		rotationX: number = -12;
+		rotationY: number = 19;
 		rotationZ: number = 0;
 		
 		updateProjectionMatrix()
 		{
-			var a = 800 / 600;
+			var a = Game.WIDTH / Game.HEIGHT;
 			var fov = this.fov;
 			var Znear = 0.1;
 			var Zfar = 100;
@@ -75,9 +75,9 @@ module VirtualCamera
 			super(game, 0, 0);
 			
 			this.translationMatrix = math.matrix([
-				[1, 0, 0, 20 ],
-				[0, 1, 0, 0 ],
-				[0, 0, 1, 0 ],
+				[1, 0, 0, -88 ],
+				[0, 1, 0, -67 ],
+				[0, 0, 1, 118 ],
 				[0, 0, 0, 1 ],
 			]);
 			this.updateProjectionMatrix();
