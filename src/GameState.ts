@@ -13,20 +13,26 @@ module VirtualCamera
 		
 		create()
 		{	
+			this.game.input.onDown.add(
+            	() => { this.game.scale.startFullScreen(false); },
+            this);
 			this.stage.backgroundColor = 0xFFFFFF;
 			
 			this.graphics = this.game.add.graphics(300, 200);
 			camera = new Camera(this.game, -88, -67, 118, -12, 19, 0);
 			this.add.existing(camera);
 			
-			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 0, 10, 20, 10));
-			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10, 0, 16));
-			this.add.existing(new Cuboid(this.game, this.graphics, 0, 0, 30, 10, 30, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, -2, 0, 0, 10, 20, 10, 0, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, -2, 0, 17, 10, 15, 10, 0, 16));
+			this.add.existing(new Cuboid(this.game, this.graphics, -2, 0, 34, 10, 30, 10, 0, 30));
 			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10, 0, 45));
-			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 15, 10, 17, 10));
-			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 30, 10, 8, 10));
+			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 17, 10, 17, 10, 0, 30));
+			this.add.existing(new Cuboid(this.game, this.graphics, 40, 0, 34, 10, 8, 10, 0, 22));
+			
 			this.add.existing(new Plane(this.game, this.graphics, 13, 0, -10, 10, 60));
 			this.add.existing(new Plane(this.game, this.graphics, 27, 0, -10, 10, 60));
+			
+			this.add.existing(new Pyramid(this.game, this.graphics, 24.5, 0, 70, 20, 40, 20));
 			
 			var tree_z = 0;
 			this.add.existing(new Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));

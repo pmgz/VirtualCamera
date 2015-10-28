@@ -312,18 +312,21 @@ var VirtualCamera;
             _super.apply(this, arguments);
         }
         GameState.prototype.create = function () {
+            var _this = this;
+            this.game.input.onDown.add(function () { _this.game.scale.startFullScreen(false); }, this);
             this.stage.backgroundColor = 0xFFFFFF;
             this.graphics = this.game.add.graphics(300, 200);
             VirtualCamera.camera = new VirtualCamera.Camera(this.game, -88, -67, 118, -12, 19, 0);
             this.add.existing(VirtualCamera.camera);
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 0, 10, 20, 10));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 15, 10, 15, 10, 0, 16));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 0, 0, 30, 10, 30, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, -2, 0, 0, 10, 20, 10, 0, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, -2, 0, 17, 10, 15, 10, 0, 16));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, -2, 0, 34, 10, 30, 10, 0, 30));
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 0, 10, 13, 10, 0, 45));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 15, 10, 17, 10));
-            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 30, 10, 8, 10));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 17, 10, 17, 10, 0, 30));
+            this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 40, 0, 34, 10, 8, 10, 0, 22));
             this.add.existing(new VirtualCamera.Plane(this.game, this.graphics, 13, 0, -10, 10, 60));
             this.add.existing(new VirtualCamera.Plane(this.game, this.graphics, 27, 0, -10, 10, 60));
+            this.add.existing(new VirtualCamera.Pyramid(this.game, this.graphics, 24.5, 0, 70, 20, 40, 20));
             var tree_z = 0;
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
             this.add.existing(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
@@ -408,6 +411,41 @@ var VirtualCamera;
         return Plane;
     })(VirtualCamera.SceneObject);
     VirtualCamera.Plane = Plane;
+})(VirtualCamera || (VirtualCamera = {}));
+/// <reference path="../tsDefinitions/phaser.d.ts" />
+/// <reference path="SceneObject.ts" />
+var VirtualCamera;
+(function (VirtualCamera) {
+    var Pyramid = (function (_super) {
+        __extends(Pyramid, _super);
+        function Pyramid(game, graphics, x, y, z, x_size, y_size, z_size, x_rot, y_rot, z_rot) {
+            if (x_rot === void 0) { x_rot = 0; }
+            if (y_rot === void 0) { y_rot = 0; }
+            if (z_rot === void 0) { z_rot = 0; }
+            _super.call(this, game, graphics, x, y, z, x_rot, y_rot, z_rot);
+            this.addVertex('v1', -x_size / 2, 0, -z_size / 2);
+            this.addVertex('v2', x_size / 2, 0, -z_size / 2);
+            this.addVertex('v3', x_size / 2, 0, z_size / 2);
+            this.addVertex('v4', -x_size / 2, 0, z_size / 2);
+            this.addVertex('v5', 0, y_size, 0);
+            this.addEdge('v1', 'v2');
+            this.addEdge('v2', 'v3');
+            this.addEdge('v3', 'v4');
+            this.addEdge('v4', 'v1');
+            this.addEdge('v1', 'v5');
+            this.addEdge('v2', 'v5');
+            this.addEdge('v3', 'v5');
+            this.addEdge('v4', 'v5');
+        }
+        Pyramid.prototype.update = function () {
+            this.rotationY += 1;
+            this.updateRotationMatrices();
+            this.updateModelMatrix();
+            _super.prototype.update.call(this);
+        };
+        return Pyramid;
+    })(VirtualCamera.SceneObject);
+    VirtualCamera.Pyramid = Pyramid;
 })(VirtualCamera || (VirtualCamera = {}));
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 var VirtualCamera;
