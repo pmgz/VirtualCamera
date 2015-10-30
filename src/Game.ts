@@ -6,8 +6,8 @@ module VirtualCamera
 {    
     export class Game extends Phaser.Game
 	{
-        static WIDTH: number = 800;
-        static HEIGHT: number = 600;
+        static WIDTH: number = window.screen.width;
+        static HEIGHT: number = window.screen.height;
         
         constructor()
 		{
