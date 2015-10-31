@@ -136,5 +136,10 @@ module VirtualCamera
 			this.updateRotationMatrices();
 			this.updateModelMatrix();
 		}
+		
+		getPosition()
+		{
+			return new Vertex(this.translationMatrix._data[0][3], this.translationMatrix._data[1][3], this.translationMatrix._data[2][3]);
+		}
 	}
 }

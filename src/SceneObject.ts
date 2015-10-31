@@ -1,5 +1,6 @@
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 /// <reference path="Camera.ts" />
+/// <reference path="Polygon.ts" />
 
 module VirtualCamera
 {	
@@ -52,21 +53,14 @@ module VirtualCamera
 			this.updateModelMatrix();
 		}
 		
-		create()
-		{
-		}
-		
 		update()
 		{
+			this.updateModelMatrix();
 			var mvp = math.multiply(math.multiply(camera.projectionMatrix, camera.modelMatrix), this.modelMatrix);
 			
 			for (var key in this.vertices)
 			{
 				var v =  this.vertices[key];
-				var vWorld = math.multiply(this.modelMatrix, [v.x, v.y, v.z, 1])
-				this.verticesWorld[key].x = vWorld._data[0];
-				this.verticesWorld[key].y = vWorld._data[1];
-				this.verticesWorld[key].z = vWorld._data[2];
 				var vProjected = math.multiply(mvp, [v.x, v.y, v.z, 1])
 				this.verticesProjected[key].x = vProjected._data[0];
 				this.verticesProjected[key].y = vProjected._data[1];
@@ -128,6 +122,31 @@ module VirtualCamera
 								math.multiply(
 									math.multiply(this.rotationXMatrix, this.rotationYMatrix), 
 										this.rotationZMatrix));
+										
+			for (var key in this.vertices)
+			{
+				var v = this.vertices[key];
+				var vWorld = math.multiply(this.modelMatrix, [v.x, v.y, v.z, 1])
+				this.verticesWorld[key].x = vWorld._data[0];
+				this.verticesWorld[key].y = vWorld._data[1];
+				this.verticesWorld[key].z = vWorld._data[2];
+			}
+			
+			for (var j = 0; j < this.polygons.length; j++)
+			{
+				var sx = 0, sy = 0, sz = 0;
+				var vnum = this.polygons[j].vertices.length;
+				for (var i = 0; i < vnum; i++)
+				{
+					var ver = this.verticesWorld[this.polygons[j].vertices[i]];
+					sx += ver.x;
+					sy += ver.y;
+					sz += ver.z;
+				}
+				this.polygons[j].center.x = sx / vnum;
+				this.polygons[j].center.y = sy / vnum;
+				this.polygons[j].center.z = sz / vnum;
+			}
 		}
 	}
 }

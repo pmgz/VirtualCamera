@@ -12,6 +12,7 @@ module VirtualCamera
 		graphics: Phaser.Graphics;
 		debugEntries: Array<string>;
 		objects: Array<SceneObject>;
+		log = 100;
 		
 		create()
 		{	
@@ -78,6 +79,11 @@ module VirtualCamera
 				}
 			}
 			
+			polygonsObjects.sort((a: PolygonSceneObject, b: PolygonSceneObject) => {
+				var campos = camera.getPosition();
+				return Vertex.distance(a.polygon.center, campos) - Vertex.distance(b.polygon.center, campos);
+			});
+			
 			var g: Phaser.Graphics = this.graphics;
 			for (var j = 0; j < polygonsObjects.length; j++)
 			{
@@ -85,6 +91,7 @@ module VirtualCamera
 				var vertices = polygonsObjects[j].polygon.vertices;
 				var v: Vertex, v0: Vertex;
 				g.lineStyle(1, 0x000000, 1);
+				g.beginFill(0xFF3333);
 				v0 = obj.verticesProjected[vertices[0]];
 				g.moveTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
 				for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++)
@@ -93,6 +100,12 @@ module VirtualCamera
 					g.lineTo(v.x * Game.WIDTH, v.y * Game.HEIGHT);
 				}
 				g.lineTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
+				g.endFill();
+				if (this.log)
+				{
+					console.log(polygonsObjects[j].polygon);
+					this.log--;
+				}
 			}
 		}
 		
