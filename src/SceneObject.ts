@@ -7,7 +7,10 @@ module VirtualCamera
 	{
 		graphics: Phaser.Graphics;
 		vertices: Array<Vertex>;
+		verticesWorld: Array<Vertex>;
+		verticesProjected: Array<Vertex>;
 		edges: Array<Edge>;
+		polygons: Array<Polygon>;
 		
 		rotationX: number = 0;
 		rotationY: number = 0;
@@ -32,7 +35,10 @@ module VirtualCamera
 			super(game, 0, 0);
 			this.graphics = graphics;
 			this.vertices = new Array();
+			this.verticesWorld = new Array();
+			this.verticesProjected = new Array();
 			this.edges = new Array();
+			this.polygons = new Array();
 			this.translationMatrix = math.matrix([
 				[1, 0, 0, x],
 				[0, 1, 0, y],
@@ -54,40 +60,39 @@ module VirtualCamera
 		{
 			var mvp = math.multiply(math.multiply(camera.projectionMatrix, camera.modelMatrix), this.modelMatrix);
 			
-			var g: Phaser.Graphics = this.graphics;
-			var v1: Vertex, v2: Vertex;
-			for (var i = 0; i < this.edges.length; i++)
+			for (var key in this.vertices)
 			{
-				v1 = this.vertices[this.edges[i].vertex1];
-				v2 = this.vertices[this.edges[i].vertex2];
-				
-				var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
-				var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
-				
-				g.lineStyle(1, 0x000000, 1);
-				if (v1n._data[3] != 1)
+				var v =  this.vertices[key];
+				var vWorld = math.multiply(this.modelMatrix, [v.x, v.y, v.z, 1])
+				this.verticesWorld[key].x = vWorld._data[0];
+				this.verticesWorld[key].y = vWorld._data[1];
+				this.verticesWorld[key].z = vWorld._data[2];
+				var vProjected = math.multiply(mvp, [v.x, v.y, v.z, 1])
+				this.verticesProjected[key].x = vProjected._data[0];
+				this.verticesProjected[key].y = vProjected._data[1];
+				if (vProjected._data[3] != 1)
 				{
-					v1n._data[0] /= v1n._data[3];
-					v1n._data[1] /= v1n._data[3];
+					this.verticesProjected[key].x /= vProjected._data[3];
+					this.verticesProjected[key].y /= vProjected._data[3];
 				}
-				if (v2n._data[3] != 1)
-				{
-					v2n._data[0] /= v2n._data[3];
-					v2n._data[1] /= v2n._data[3];
-				}
-				g.moveTo(v1n._data[0] * Game.WIDTH, v1n._data[1] * Game.HEIGHT);  
-				g.lineTo(v2n._data[0] * Game.WIDTH, v2n._data[1] * Game.HEIGHT);
 			}
 		}
 		
 		addVertex(name: string, x: number, y: number, z: number)
 		{
 			this.vertices[name] = new Vertex(x, y, z);
+			this.verticesWorld[name] = new Vertex(x, y, z);
+			this.verticesProjected[name] = new Vertex(x, y, z);
 		}
 		
 		addEdge(vertex1: string, vertex2: string)
 		{
 			this.edges.push(new Edge(vertex1, vertex2));
+		}
+		
+		addPolygon(vertices: Array<string>)
+		{
+			this.polygons.push(new Polygon(vertices));
 		}
 		
 		updateRotationMatrices()

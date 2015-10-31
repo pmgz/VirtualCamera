@@ -59,43 +59,40 @@ module VirtualCamera
 			
 			this.debugEntries = new Array<string>();
 			
-			//for (var i = 0; i < this.objects.length; i++)
-				//this.add.existing(this.objects[i]);
+			for (var i = 0; i < this.objects.length; i++)
+				this.add.existing(this.objects[i]);
 		}
 		
 		update()
 		{
 			this.graphics.clear();
+			
+			var polygonsObjects: Array<PolygonSceneObject> = Array<PolygonSceneObject>();
+			
 			for (var j = 0; j < this.objects.length; j++)
 			{
 				var obj: SceneObject = this.objects[j];
-				
-				var mvp = math.multiply(math.multiply(camera.projectionMatrix, camera.modelMatrix), obj.modelMatrix);
-			
-				var g: Phaser.Graphics = this.graphics;
-				var v1: Vertex, v2: Vertex;
-				for (var i = 0; i < obj.edges.length; i++)
+				for (var i = 0; i < obj.polygons.length; i++)
 				{
-					v1 = obj.vertices[obj.edges[i].vertex1];
-					v2 = obj.vertices[obj.edges[i].vertex2];
-					
-					var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
-					var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
-					
-					g.lineStyle(1, 0x000000, 1);
-					if (v1n._data[3] != 1)
-					{
-						v1n._data[0] /= v1n._data[3];
-						v1n._data[1] /= v1n._data[3];
-					}
-					if (v2n._data[3] != 1)
-					{
-						v2n._data[0] /= v2n._data[3];
-						v2n._data[1] /= v2n._data[3];
-					}
-					g.moveTo(v1n._data[0] * Game.WIDTH, v1n._data[1] * Game.HEIGHT);  
-					g.lineTo(v2n._data[0] * Game.WIDTH, v2n._data[1] * Game.HEIGHT);
+					polygonsObjects.push(new PolygonSceneObject(obj.polygons[i], obj));
 				}
+			}
+			
+			var g: Phaser.Graphics = this.graphics;
+			for (var j = 0; j < polygonsObjects.length; j++)
+			{
+				var obj = polygonsObjects[j].sceneObject;
+				var vertices = polygonsObjects[j].polygon.vertices;
+				var v: Vertex, v0: Vertex;
+				g.lineStyle(1, 0x000000, 1);
+				v0 = obj.verticesProjected[vertices[0]];
+				g.moveTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
+				for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++)
+				{
+					v = obj.verticesProjected[vertices[i]]; 
+					g.lineTo(v.x * Game.WIDTH, v.y * Game.HEIGHT);
+				}
+				g.lineTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
 			}
 		}
 		

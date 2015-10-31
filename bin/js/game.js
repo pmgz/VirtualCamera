@@ -83,7 +83,10 @@ var VirtualCamera;
             this.rotationZ = 0;
             this.graphics = graphics;
             this.vertices = new Array();
+            this.verticesWorld = new Array();
+            this.verticesProjected = new Array();
             this.edges = new Array();
+            this.polygons = new Array();
             this.translationMatrix = math.matrix([
                 [1, 0, 0, x],
                 [0, 1, 0, y],
@@ -100,31 +103,31 @@ var VirtualCamera;
         };
         SceneObject.prototype.update = function () {
             var mvp = math.multiply(math.multiply(VirtualCamera.camera.projectionMatrix, VirtualCamera.camera.modelMatrix), this.modelMatrix);
-            var g = this.graphics;
-            var v1, v2;
-            for (var i = 0; i < this.edges.length; i++) {
-                v1 = this.vertices[this.edges[i].vertex1];
-                v2 = this.vertices[this.edges[i].vertex2];
-                var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
-                var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
-                g.lineStyle(1, 0x000000, 1);
-                if (v1n._data[3] != 1) {
-                    v1n._data[0] /= v1n._data[3];
-                    v1n._data[1] /= v1n._data[3];
+            for (var key in this.vertices) {
+                var v = this.vertices[key];
+                var vWorld = math.multiply(this.modelMatrix, [v.x, v.y, v.z, 1]);
+                this.verticesWorld[key].x = vWorld._data[0];
+                this.verticesWorld[key].y = vWorld._data[1];
+                this.verticesWorld[key].z = vWorld._data[2];
+                var vProjected = math.multiply(mvp, [v.x, v.y, v.z, 1]);
+                this.verticesProjected[key].x = vProjected._data[0];
+                this.verticesProjected[key].y = vProjected._data[1];
+                if (vProjected._data[3] != 1) {
+                    this.verticesProjected[key].x /= vProjected._data[3];
+                    this.verticesProjected[key].y /= vProjected._data[3];
                 }
-                if (v2n._data[3] != 1) {
-                    v2n._data[0] /= v2n._data[3];
-                    v2n._data[1] /= v2n._data[3];
-                }
-                g.moveTo(v1n._data[0] * VirtualCamera.Game.WIDTH, v1n._data[1] * VirtualCamera.Game.HEIGHT);
-                g.lineTo(v2n._data[0] * VirtualCamera.Game.WIDTH, v2n._data[1] * VirtualCamera.Game.HEIGHT);
             }
         };
         SceneObject.prototype.addVertex = function (name, x, y, z) {
             this.vertices[name] = new VirtualCamera.Vertex(x, y, z);
+            this.verticesWorld[name] = new VirtualCamera.Vertex(x, y, z);
+            this.verticesProjected[name] = new VirtualCamera.Vertex(x, y, z);
         };
         SceneObject.prototype.addEdge = function (vertex1, vertex2) {
             this.edges.push(new VirtualCamera.Edge(vertex1, vertex2));
+        };
+        SceneObject.prototype.addPolygon = function (vertices) {
+            this.polygons.push(new VirtualCamera.Polygon(vertices));
         };
         SceneObject.prototype.updateRotationMatrices = function () {
             var angleX = this.rotationX * Math.PI / 180;
@@ -283,6 +286,12 @@ var VirtualCamera;
             this.addEdge('v2', 'v6');
             this.addEdge('v3', 'v7');
             this.addEdge('v4', 'v8');
+            this.addPolygon(['v1', 'v2', 'v3', 'v4']);
+            this.addPolygon(['v1', 'v2', 'v6', 'v5']);
+            this.addPolygon(['v2', 'v3', 'v7', 'v6']);
+            this.addPolygon(['v3', 'v4', 'v8', 'v7']);
+            this.addPolygon(['v4', 'v1', 'v5', 'v8']);
+            this.addPolygon(['v5', 'v6', 'v7', 'v8']);
         }
         return Cuboid;
     })(VirtualCamera.SceneObject);
@@ -345,33 +354,31 @@ var VirtualCamera;
             this.objects.push(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5, 0, tree_z, 1, 3, 1));
             this.objects.push(new VirtualCamera.Cuboid(this.game, this.graphics, 24.5 - 2, 3, tree_z - 2, 5, 5, 5));
             this.debugEntries = new Array();
-            //for (var i = 0; i < this.objects.length; i++)
-            //this.add.existing(this.objects[i]);
+            for (var i = 0; i < this.objects.length; i++)
+                this.add.existing(this.objects[i]);
         };
         GameState.prototype.update = function () {
             this.graphics.clear();
+            var polygonsObjects = Array();
             for (var j = 0; j < this.objects.length; j++) {
                 var obj = this.objects[j];
-                var mvp = math.multiply(math.multiply(VirtualCamera.camera.projectionMatrix, VirtualCamera.camera.modelMatrix), obj.modelMatrix);
-                var g = this.graphics;
-                var v1, v2;
-                for (var i = 0; i < obj.edges.length; i++) {
-                    v1 = obj.vertices[obj.edges[i].vertex1];
-                    v2 = obj.vertices[obj.edges[i].vertex2];
-                    var v1n = math.multiply(mvp, [v1.x, v1.y, v1.z, 1]);
-                    var v2n = math.multiply(mvp, [v2.x, v2.y, v2.z, 1]);
-                    g.lineStyle(1, 0x000000, 1);
-                    if (v1n._data[3] != 1) {
-                        v1n._data[0] /= v1n._data[3];
-                        v1n._data[1] /= v1n._data[3];
-                    }
-                    if (v2n._data[3] != 1) {
-                        v2n._data[0] /= v2n._data[3];
-                        v2n._data[1] /= v2n._data[3];
-                    }
-                    g.moveTo(v1n._data[0] * VirtualCamera.Game.WIDTH, v1n._data[1] * VirtualCamera.Game.HEIGHT);
-                    g.lineTo(v2n._data[0] * VirtualCamera.Game.WIDTH, v2n._data[1] * VirtualCamera.Game.HEIGHT);
+                for (var i = 0; i < obj.polygons.length; i++) {
+                    polygonsObjects.push(new VirtualCamera.PolygonSceneObject(obj.polygons[i], obj));
                 }
+            }
+            var g = this.graphics;
+            for (var j = 0; j < polygonsObjects.length; j++) {
+                var obj = polygonsObjects[j].sceneObject;
+                var vertices = polygonsObjects[j].polygon.vertices;
+                var v, v0;
+                g.lineStyle(1, 0x000000, 1);
+                v0 = obj.verticesProjected[vertices[0]];
+                g.moveTo(v0.x * VirtualCamera.Game.WIDTH, v0.y * VirtualCamera.Game.HEIGHT);
+                for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++) {
+                    v = obj.verticesProjected[vertices[i]];
+                    g.lineTo(v.x * VirtualCamera.Game.WIDTH, v.y * VirtualCamera.Game.HEIGHT);
+                }
+                g.lineTo(v0.x * VirtualCamera.Game.WIDTH, v0.y * VirtualCamera.Game.HEIGHT);
             }
         };
         GameState.prototype.render = function () {
@@ -434,10 +441,34 @@ var VirtualCamera;
             this.addEdge('v2', 'v3');
             this.addEdge('v3', 'v4');
             this.addEdge('v4', 'v1');
+            this.addPolygon(['v1', 'v2', 'v3', 'v4']);
         }
         return Plane;
     })(VirtualCamera.SceneObject);
     VirtualCamera.Plane = Plane;
+})(VirtualCamera || (VirtualCamera = {}));
+/// <reference path="../tsDefinitions/phaser.d.ts" />
+var VirtualCamera;
+(function (VirtualCamera) {
+    var Polygon = (function () {
+        function Polygon(vertices) {
+            this.vertices = vertices;
+        }
+        return Polygon;
+    })();
+    VirtualCamera.Polygon = Polygon;
+})(VirtualCamera || (VirtualCamera = {}));
+/// <reference path="../tsDefinitions/phaser.d.ts" />
+var VirtualCamera;
+(function (VirtualCamera) {
+    var PolygonSceneObject = (function () {
+        function PolygonSceneObject(polygon, sceneObject) {
+            this.polygon = polygon;
+            this.sceneObject = sceneObject;
+        }
+        return PolygonSceneObject;
+    })();
+    VirtualCamera.PolygonSceneObject = PolygonSceneObject;
 })(VirtualCamera || (VirtualCamera = {}));
 /// <reference path="../tsDefinitions/phaser.d.ts" />
 /// <reference path="SceneObject.ts" />
@@ -463,6 +494,11 @@ var VirtualCamera;
             this.addEdge('v2', 'v5');
             this.addEdge('v3', 'v5');
             this.addEdge('v4', 'v5');
+            this.addPolygon(['v1', 'v2', 'v3', 'v4']);
+            this.addPolygon(['v1', 'v2', 'v5']);
+            this.addPolygon(['v2', 'v3', 'v5']);
+            this.addPolygon(['v3', 'v4', 'v5']);
+            this.addPolygon(['v4', 'v1', 'v5']);
         }
         Pyramid.prototype.update = function () {
             this.rotationY += 1;

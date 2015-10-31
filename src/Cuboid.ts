@@ -40,6 +40,12 @@ module VirtualCamera
 			this.addEdge('v2', 'v6');
 			this.addEdge('v3', 'v7');
 			this.addEdge('v4', 'v8');
+			this.addPolygon(['v1', 'v2', 'v3', 'v4']);
+			this.addPolygon(['v1', 'v2', 'v6', 'v5']);
+			this.addPolygon(['v2', 'v3', 'v7', 'v6']);
+			this.addPolygon(['v3', 'v4', 'v8', 'v7']);
+			this.addPolygon(['v4', 'v1', 'v5', 'v8']);
+			this.addPolygon(['v5', 'v6', 'v7', 'v8']);
         }
     }
 }

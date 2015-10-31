@@ -33,6 +33,11 @@ module VirtualCamera
 			this.addEdge('v2', 'v5');
 			this.addEdge('v3', 'v5');
 			this.addEdge('v4', 'v5');
+			this.addPolygon(['v1', 'v2', 'v3', 'v4']);
+			this.addPolygon(['v1', 'v2', 'v5']);
+			this.addPolygon(['v2', 'v3', 'v5']);
+			this.addPolygon(['v3', 'v4', 'v5']);
+			this.addPolygon(['v4', 'v1', 'v5']);
         }
 		
 		update()
