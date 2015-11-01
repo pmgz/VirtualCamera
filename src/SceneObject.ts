@@ -135,17 +135,26 @@ module VirtualCamera
 			for (var j = 0; j < this.polygons.length; j++)
 			{
 				var sx = 0, sy = 0, sz = 0;
-				var vnum = this.polygons[j].vertices.length;
+				var p = this.polygons[j];
+				var vnum = p.vertices.length;
 				for (var i = 0; i < vnum; i++)
 				{
-					var ver = this.verticesWorld[this.polygons[j].vertices[i]];
+					var ver = this.verticesWorld[p.vertices[i]];
 					sx += ver.x;
 					sy += ver.y;
 					sz += ver.z;
 				}
-				this.polygons[j].center.x = sx / vnum;
-				this.polygons[j].center.y = sy / vnum;
-				this.polygons[j].center.z = sz / vnum;
+				p.center.x = sx / vnum;
+				p.center.y = sy / vnum;
+				p.center.z = sz / vnum;
+				
+				var v1 = this.verticesWorld[p.vertices[0]];
+				var v2 = this.verticesWorld[p.vertices[1]];
+				var v3 = this.verticesWorld[p.vertices[2]];
+				var vec1 = new Vertex(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+				var vec2 = new Vertex(v3.x - v2.x, v3.y - v2.y, v3.z - v2.z);
+				p.normal = Vertex.crossProduct(vec1, vec2);
+				p.D = -Vertex.dotProduct(v1, p.normal);
 			}
 		}
 	}

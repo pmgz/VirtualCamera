@@ -13,6 +13,8 @@ module VirtualCamera
 		debugEntries: Array<string>;
 		objects: Array<SceneObject>;
 		log = 100;
+		renderMode: number = 2;
+		renderModeName = ['wireframe', 'polygons 1', 'polygons 2'];
 		
 		create()
 		{	
@@ -66,6 +68,12 @@ module VirtualCamera
 		
 		update()
 		{
+			if (input.keyChangeRenderMode.justDown)
+			{
+				this.renderMode++;
+				if (this.renderMode == 3) this.renderMode = 0;
+			}
+			
 			this.graphics.clear();
 			
 			var polygonsObjects: Array<PolygonSceneObject> = Array<PolygonSceneObject>();
@@ -79,10 +87,25 @@ module VirtualCamera
 				}
 			}
 			
-			polygonsObjects.sort((a: PolygonSceneObject, b: PolygonSceneObject) => {
-				var campos = camera.getPosition();
-				return Vertex.distance(a.polygon.center, campos) - Vertex.distance(b.polygon.center, campos);
-			});
+			if (this.renderMode == 1)
+			{
+				polygonsObjects.sort((a: PolygonSceneObject, b: PolygonSceneObject) => {
+					var campos = camera.getPosition();
+					return Vertex.distance(a.polygon.center, campos) - Vertex.distance(b.polygon.center, campos);
+				});
+			}
+			else if (this.renderMode == 2)
+			{
+				polygonsObjects.sort((a: PolygonSceneObject, b: PolygonSceneObject) => {
+					var campos = camera.getPosition();
+					var dot1 = Vertex.dotProduct(a.polygon.normal, b.polygon.center) + a.polygon.D;
+					var dot2 = Vertex.dotProduct(a.polygon.normal, campos) + a.polygon.D;
+					if ((dot1 < 0 && dot2 < 0) || (dot1 >= 0 && dot2 >= 0))
+						return 1;
+					else
+						return -1;
+				});
+			}
 			
 			var g: Phaser.Graphics = this.graphics;
 			for (var j = 0; j < polygonsObjects.length; j++)
@@ -91,7 +114,8 @@ module VirtualCamera
 				var vertices = polygonsObjects[j].polygon.vertices;
 				var v: Vertex, v0: Vertex;
 				g.lineStyle(1, 0x000000, 1);
-				g.beginFill(0xFF3333);
+				if (this.renderMode == 1) g.beginFill(0xFF3333);
+				else if (this.renderMode == 2) g.beginFill(0x66A3FF);
 				v0 = obj.verticesProjected[vertices[0]];
 				g.moveTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
 				for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++)
@@ -100,7 +124,7 @@ module VirtualCamera
 					g.lineTo(v.x * Game.WIDTH, v.y * Game.HEIGHT);
 				}
 				g.lineTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
-				g.endFill();
+				if (this.renderMode == 1 || this.renderMode == 2) g.endFill();
 				if (this.log)
 				{
 					console.log(polygonsObjects[j].polygon);
@@ -119,12 +143,19 @@ module VirtualCamera
 				'Z: ' + camera.translationMatrix._data[2][3],
 				'rotX: ' + camera.rotationX,
 				'rotY: ' + camera.rotationY,
-				'rotZ: ' + camera.rotationZ
+				'rotZ: ' + camera.rotationZ,
+				'Render mode: ' + this.renderModeName[this.renderMode],
+				'_____________',
+				'Instructions:',
+				'Arrows, Q, E - moving',
+				'I, O, J, K, N, M - rotating',
+				'A, D - zoom',
+				'Left mouse button - fullscreen'
 			];
 			
 			for (var i = 0; i < this.debugEntries.length; i++)
 			{
-				this.game.debug.text(this.debugEntries[i], 5, (i + 1) * 20, '#ffffff');
+				this.game.debug.text(this.debugEntries[i], 5, (i + 1) * 20, i >= 9 ? '#CCFF99' : '#FFFFFF');
 			}
 		}
 	}

@@ -17,6 +17,7 @@ module VirtualCamera
 		keyRotateZLeft: Phaser.Key;
 		keyRotateZRight: Phaser.Key;
 		keyResetRotation: Phaser.Key;
+		keyChangeRenderMode: Phaser.Key;
 		
 		constructor(game: Phaser.Game)
 		{
@@ -33,6 +34,7 @@ module VirtualCamera
 			this.keyRotateYRight = game.input.keyboard.addKey(Phaser.Keyboard.K);
 			this.keyRotateZLeft = game.input.keyboard.addKey(Phaser.Keyboard.N);
 			this.keyRotateZRight = game.input.keyboard.addKey(Phaser.Keyboard.M);
+			this.keyChangeRenderMode = game.input.keyboard.addKey(Phaser.Keyboard.R);
 			
 			game.input.keyboard.addKeyCapture([
 				Phaser.Keyboard.SPACEBAR,
@@ -47,6 +49,7 @@ module VirtualCamera
 				Phaser.Keyboard.K,
 				Phaser.Keyboard.N,
 				Phaser.Keyboard.M,
+				Phaser.Keyboard.R
 			]);
 		}
 	}

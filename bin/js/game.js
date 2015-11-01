@@ -16,6 +16,7 @@ var VirtualCamera;
             this.keyRotateYRight = game.input.keyboard.addKey(Phaser.Keyboard.K);
             this.keyRotateZLeft = game.input.keyboard.addKey(Phaser.Keyboard.N);
             this.keyRotateZRight = game.input.keyboard.addKey(Phaser.Keyboard.M);
+            this.keyChangeRenderMode = game.input.keyboard.addKey(Phaser.Keyboard.R);
             game.input.keyboard.addKeyCapture([
                 Phaser.Keyboard.SPACEBAR,
                 Phaser.Keyboard.F,
@@ -29,6 +30,7 @@ var VirtualCamera;
                 Phaser.Keyboard.K,
                 Phaser.Keyboard.N,
                 Phaser.Keyboard.M,
+                Phaser.Keyboard.R
             ]);
         }
         return Input;
@@ -74,6 +76,8 @@ var VirtualCamera;
         function Polygon(vertices) {
             this.vertices = vertices;
             this.center = new VirtualCamera.Vertex(0, 0, 0);
+            this.normal = new VirtualCamera.Vertex(0, 0, 0);
+            this.D = 0;
         }
         return Polygon;
     })();
@@ -171,16 +175,24 @@ var VirtualCamera;
             }
             for (var j = 0; j < this.polygons.length; j++) {
                 var sx = 0, sy = 0, sz = 0;
-                var vnum = this.polygons[j].vertices.length;
+                var p = this.polygons[j];
+                var vnum = p.vertices.length;
                 for (var i = 0; i < vnum; i++) {
-                    var ver = this.verticesWorld[this.polygons[j].vertices[i]];
+                    var ver = this.verticesWorld[p.vertices[i]];
                     sx += ver.x;
                     sy += ver.y;
                     sz += ver.z;
                 }
-                this.polygons[j].center.x = sx / vnum;
-                this.polygons[j].center.y = sy / vnum;
-                this.polygons[j].center.z = sz / vnum;
+                p.center.x = sx / vnum;
+                p.center.y = sy / vnum;
+                p.center.z = sz / vnum;
+                var v1 = this.verticesWorld[p.vertices[0]];
+                var v2 = this.verticesWorld[p.vertices[1]];
+                var v3 = this.verticesWorld[p.vertices[2]];
+                var vec1 = new VirtualCamera.Vertex(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+                var vec2 = new VirtualCamera.Vertex(v3.x - v2.x, v3.y - v2.y, v3.z - v2.z);
+                p.normal = VirtualCamera.Vertex.crossProduct(vec1, vec2);
+                p.D = -VirtualCamera.Vertex.dotProduct(v1, p.normal);
             }
         };
         return SceneObject;
@@ -352,6 +364,8 @@ var VirtualCamera;
         function GameState() {
             _super.apply(this, arguments);
             this.log = 100;
+            this.renderMode = 2;
+            this.renderModeName = ['wireframe', 'polygons 1', 'polygons 2'];
         }
         GameState.prototype.create = function () {
             var _this = this;
@@ -390,6 +404,11 @@ var VirtualCamera;
                 this.add.existing(this.objects[i]);
         };
         GameState.prototype.update = function () {
+            if (VirtualCamera.input.keyChangeRenderMode.justDown) {
+                this.renderMode++;
+                if (this.renderMode == 3)
+                    this.renderMode = 0;
+            }
             this.graphics.clear();
             var polygonsObjects = Array();
             for (var j = 0; j < this.objects.length; j++) {
@@ -398,17 +417,33 @@ var VirtualCamera;
                     polygonsObjects.push(new VirtualCamera.PolygonSceneObject(obj.polygons[i], obj));
                 }
             }
-            polygonsObjects.sort(function (a, b) {
-                var campos = VirtualCamera.camera.getPosition();
-                return VirtualCamera.Vertex.distance(a.polygon.center, campos) - VirtualCamera.Vertex.distance(b.polygon.center, campos);
-            });
+            if (this.renderMode == 1) {
+                polygonsObjects.sort(function (a, b) {
+                    var campos = VirtualCamera.camera.getPosition();
+                    return VirtualCamera.Vertex.distance(a.polygon.center, campos) - VirtualCamera.Vertex.distance(b.polygon.center, campos);
+                });
+            }
+            else if (this.renderMode == 2) {
+                polygonsObjects.sort(function (a, b) {
+                    var campos = VirtualCamera.camera.getPosition();
+                    var dot1 = VirtualCamera.Vertex.dotProduct(a.polygon.normal, b.polygon.center) + a.polygon.D;
+                    var dot2 = VirtualCamera.Vertex.dotProduct(a.polygon.normal, campos) + a.polygon.D;
+                    if ((dot1 < 0 && dot2 < 0) || (dot1 >= 0 && dot2 >= 0))
+                        return 1;
+                    else
+                        return -1;
+                });
+            }
             var g = this.graphics;
             for (var j = 0; j < polygonsObjects.length; j++) {
                 var obj = polygonsObjects[j].sceneObject;
                 var vertices = polygonsObjects[j].polygon.vertices;
                 var v, v0;
                 g.lineStyle(1, 0x000000, 1);
-                g.beginFill(0xFF3333);
+                if (this.renderMode == 1)
+                    g.beginFill(0xFF3333);
+                else if (this.renderMode == 2)
+                    g.beginFill(0x66A3FF);
                 v0 = obj.verticesProjected[vertices[0]];
                 g.moveTo(v0.x * VirtualCamera.Game.WIDTH, v0.y * VirtualCamera.Game.HEIGHT);
                 for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++) {
@@ -416,7 +451,8 @@ var VirtualCamera;
                     g.lineTo(v.x * VirtualCamera.Game.WIDTH, v.y * VirtualCamera.Game.HEIGHT);
                 }
                 g.lineTo(v0.x * VirtualCamera.Game.WIDTH, v0.y * VirtualCamera.Game.HEIGHT);
-                g.endFill();
+                if (this.renderMode == 1 || this.renderMode == 2)
+                    g.endFill();
                 if (this.log) {
                     console.log(polygonsObjects[j].polygon);
                     this.log--;
@@ -432,10 +468,17 @@ var VirtualCamera;
                 'Z: ' + VirtualCamera.camera.translationMatrix._data[2][3],
                 'rotX: ' + VirtualCamera.camera.rotationX,
                 'rotY: ' + VirtualCamera.camera.rotationY,
-                'rotZ: ' + VirtualCamera.camera.rotationZ
+                'rotZ: ' + VirtualCamera.camera.rotationZ,
+                'Render mode: ' + this.renderModeName[this.renderMode],
+                '_____________',
+                'Instructions:',
+                'Arrows, Q, E - moving',
+                'I, O, J, K, N, M - rotating',
+                'A, D - zoom',
+                'Left mouse button - fullscreen'
             ];
             for (var i = 0; i < this.debugEntries.length; i++) {
-                this.game.debug.text(this.debugEntries[i], 5, (i + 1) * 20, '#ffffff');
+                this.game.debug.text(this.debugEntries[i], 5, (i + 1) * 20, i >= 9 ? '#CCFF99' : '#FFFFFF');
             }
         };
         return GameState;
@@ -551,6 +594,12 @@ var VirtualCamera;
         }
         Vertex.distance = function (v1, v2) {
             return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2) + Math.pow(v1.z - v2.z, 2));
+        };
+        Vertex.dotProduct = function (v1, v2) {
+            return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+        };
+        Vertex.crossProduct = function (a, b) {
+            return new Vertex(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
         };
         return Vertex;
     })();
