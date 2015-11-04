@@ -13,8 +13,8 @@ module VirtualCamera
 		debugEntries: Array<string>;
 		objects: Array<SceneObject>;
 		log = 100;
-		renderMode: number = 2;
-		renderModeName = ['wireframe', 'polygons 1', 'polygons 2'];
+		renderMode: number = 0;
+		renderModeName = ['wireframe', 'polygons (centers)', 'polygons (planes)', 'polygons (min and max coords)'];
 		
 		create()
 		{	
@@ -71,7 +71,7 @@ module VirtualCamera
 			if (input.keyChangeRenderMode.justDown)
 			{
 				this.renderMode++;
-				if (this.renderMode == 3) this.renderMode = 0;
+				if (this.renderMode == 4) this.renderMode = 0;
 			}
 			
 			this.graphics.clear();
@@ -97,13 +97,38 @@ module VirtualCamera
 			else if (this.renderMode == 2)
 			{
 				polygonsObjects.sort((a: PolygonSceneObject, b: PolygonSceneObject) => {
+					var result1, result2;
 					var campos = camera.getPosition();
 					var dot1 = Vertex.dotProduct(a.polygon.normal, b.polygon.center) + a.polygon.D;
 					var dot2 = Vertex.dotProduct(a.polygon.normal, campos) + a.polygon.D;
-					if ((dot1 < 0 && dot2 < 0) || (dot1 >= 0 && dot2 >= 0))
-						return 1;
-					else
-						return -1;
+					if (dot1*dot2 >= 0) result1 = 1;
+					else result1 = -1;
+					return result1;
+				});
+			}
+			else if (this.renderMode == 3)
+			{
+				polygonsObjects.sort((a: PolygonSceneObject, b: PolygonSceneObject) => {
+					var va: Vertex, vb: Vertex, vtmp: Vertex;
+					var campos = camera.getPosition();
+					
+					va = a.sceneObject.verticesWorld[a.polygon.vertices[0]];
+					for (var i = 1; i < a.polygon.vertices.length; i++)
+					{
+						vtmp = a.sceneObject.verticesWorld[a.polygon.vertices[i]];
+						if (Vertex.distance(vtmp, campos) < Vertex.distance(va, campos))
+							va = vtmp;
+					}
+					
+					vb = b.sceneObject.verticesWorld[b.polygon.vertices[0]];
+					for (var i = 1; i < b.polygon.vertices.length; i++)
+					{
+						vtmp = b.sceneObject.verticesWorld[b.polygon.vertices[i]];
+						if (Vertex.distance(vtmp, campos) > Vertex.distance(vb, campos))
+							vb = vtmp;
+					}
+					
+					return Vertex.distance(va, campos) - Vertex.distance(vb, campos);
 				});
 			}
 			
@@ -116,6 +141,7 @@ module VirtualCamera
 				g.lineStyle(1, 0x000000, 1);
 				if (this.renderMode == 1) g.beginFill(0xFF3333);
 				else if (this.renderMode == 2) g.beginFill(0x66A3FF);
+				else if (this.renderMode == 3) g.beginFill(0x00E300);
 				v0 = obj.verticesProjected[vertices[0]];
 				g.moveTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
 				for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++)
@@ -124,12 +150,16 @@ module VirtualCamera
 					g.lineTo(v.x * Game.WIDTH, v.y * Game.HEIGHT);
 				}
 				g.lineTo(v0.x * Game.WIDTH, v0.y * Game.HEIGHT);
-				if (this.renderMode == 1 || this.renderMode == 2) g.endFill();
+				if (this.renderMode == 1 || this.renderMode == 2 || this.renderMode == 3) g.endFill();
 				if (this.log)
 				{
 					console.log(polygonsObjects[j].polygon);
 					this.log--;
 				}
+				/*g.drawCircle(
+					polygonsObjects[j].polygon.centerProjected.x * Game.WIDTH,
+					polygonsObjects[j].polygon.centerProjected.y * Game.HEIGHT,
+					3);*/
 			}
 		}
 		

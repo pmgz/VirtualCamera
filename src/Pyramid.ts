@@ -42,7 +42,7 @@ module VirtualCamera
 		
 		update()
 		{
-			this.rotationY += 1;
+			//this.rotationY += 1;
 			this.updateRotationMatrices();
 			super.update();
 		}

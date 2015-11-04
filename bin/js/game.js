@@ -76,6 +76,8 @@ var VirtualCamera;
         function Polygon(vertices) {
             this.vertices = vertices;
             this.center = new VirtualCamera.Vertex(0, 0, 0);
+            this.centerWorld = new VirtualCamera.Vertex(0, 0, 0);
+            this.centerProjected = new VirtualCamera.Vertex(0, 0, 0);
             this.normal = new VirtualCamera.Vertex(0, 0, 0);
             this.D = 0;
         }
@@ -129,6 +131,18 @@ var VirtualCamera;
                     this.verticesProjected[key].y /= vProjected._data[3];
                 }
             }
+            /*for (var j = 0; j < this.polygons.length; j++)
+            {
+                var p = this.polygons[j];
+                var vProjected = math.multiply(mvp, [p.center.x, p.center.y, p.center.z, 1])
+                p.centerProjected.x = vProjected._data[0];
+                p.centerProjected.y = vProjected._data[1];
+                if (vProjected._data[3] != 1)
+                {
+                    p.centerProjected.x /= vProjected._data[3];
+                    p.centerProjected.y /= vProjected._data[3];
+                }
+            }*/
         };
         SceneObject.prototype.addVertex = function (name, x, y, z) {
             this.vertices[name] = new VirtualCamera.Vertex(x, y, z);
@@ -364,8 +378,8 @@ var VirtualCamera;
         function GameState() {
             _super.apply(this, arguments);
             this.log = 100;
-            this.renderMode = 2;
-            this.renderModeName = ['wireframe', 'polygons 1', 'polygons 2'];
+            this.renderMode = 0;
+            this.renderModeName = ['wireframe', 'polygons (centers)', 'polygons (planes)', 'polygons (min and max coords)'];
         }
         GameState.prototype.create = function () {
             var _this = this;
@@ -406,7 +420,7 @@ var VirtualCamera;
         GameState.prototype.update = function () {
             if (VirtualCamera.input.keyChangeRenderMode.justDown) {
                 this.renderMode++;
-                if (this.renderMode == 3)
+                if (this.renderMode == 4)
                     this.renderMode = 0;
             }
             this.graphics.clear();
@@ -425,13 +439,34 @@ var VirtualCamera;
             }
             else if (this.renderMode == 2) {
                 polygonsObjects.sort(function (a, b) {
+                    var result1, result2;
                     var campos = VirtualCamera.camera.getPosition();
                     var dot1 = VirtualCamera.Vertex.dotProduct(a.polygon.normal, b.polygon.center) + a.polygon.D;
                     var dot2 = VirtualCamera.Vertex.dotProduct(a.polygon.normal, campos) + a.polygon.D;
-                    if ((dot1 < 0 && dot2 < 0) || (dot1 >= 0 && dot2 >= 0))
-                        return 1;
+                    if (dot1 * dot2 >= 0)
+                        result1 = 1;
                     else
-                        return -1;
+                        result1 = -1;
+                    return result1;
+                });
+            }
+            else if (this.renderMode == 3) {
+                polygonsObjects.sort(function (a, b) {
+                    var va, vb, vtmp;
+                    var campos = VirtualCamera.camera.getPosition();
+                    va = a.sceneObject.verticesWorld[a.polygon.vertices[0]];
+                    for (var i = 1; i < a.polygon.vertices.length; i++) {
+                        vtmp = a.sceneObject.verticesWorld[a.polygon.vertices[i]];
+                        if (VirtualCamera.Vertex.distance(vtmp, campos) < VirtualCamera.Vertex.distance(va, campos))
+                            va = vtmp;
+                    }
+                    vb = b.sceneObject.verticesWorld[b.polygon.vertices[0]];
+                    for (var i = 1; i < b.polygon.vertices.length; i++) {
+                        vtmp = b.sceneObject.verticesWorld[b.polygon.vertices[i]];
+                        if (VirtualCamera.Vertex.distance(vtmp, campos) > VirtualCamera.Vertex.distance(vb, campos))
+                            vb = vtmp;
+                    }
+                    return VirtualCamera.Vertex.distance(va, campos) - VirtualCamera.Vertex.distance(vb, campos);
                 });
             }
             var g = this.graphics;
@@ -444,6 +479,8 @@ var VirtualCamera;
                     g.beginFill(0xFF3333);
                 else if (this.renderMode == 2)
                     g.beginFill(0x66A3FF);
+                else if (this.renderMode == 3)
+                    g.beginFill(0x00E300);
                 v0 = obj.verticesProjected[vertices[0]];
                 g.moveTo(v0.x * VirtualCamera.Game.WIDTH, v0.y * VirtualCamera.Game.HEIGHT);
                 for (var i = 1; i < polygonsObjects[j].polygon.vertices.length; i++) {
@@ -451,7 +488,7 @@ var VirtualCamera;
                     g.lineTo(v.x * VirtualCamera.Game.WIDTH, v.y * VirtualCamera.Game.HEIGHT);
                 }
                 g.lineTo(v0.x * VirtualCamera.Game.WIDTH, v0.y * VirtualCamera.Game.HEIGHT);
-                if (this.renderMode == 1 || this.renderMode == 2)
+                if (this.renderMode == 1 || this.renderMode == 2 || this.renderMode == 3)
                     g.endFill();
                 if (this.log) {
                     console.log(polygonsObjects[j].polygon);
@@ -575,7 +612,7 @@ var VirtualCamera;
             this.addPolygon(['v4', 'v1', 'v5']);
         }
         Pyramid.prototype.update = function () {
-            this.rotationY += 1;
+            //this.rotationY += 1;
             this.updateRotationMatrices();
             _super.prototype.update.call(this);
         };

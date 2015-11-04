@@ -70,6 +70,19 @@ module VirtualCamera
 					this.verticesProjected[key].y /= vProjected._data[3];
 				}
 			}
+			
+			/*for (var j = 0; j < this.polygons.length; j++)
+			{
+				var p = this.polygons[j];
+				var vProjected = math.multiply(mvp, [p.center.x, p.center.y, p.center.z, 1])
+				p.centerProjected.x = vProjected._data[0];
+				p.centerProjected.y = vProjected._data[1];
+				if (vProjected._data[3] != 1)
+				{
+					p.centerProjected.x /= vProjected._data[3];
+					p.centerProjected.y /= vProjected._data[3];
+				}
+			}*/
 		}
 		
 		addVertex(name: string, x: number, y: number, z: number)
