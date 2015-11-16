@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Phong Reflection Example</title>
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,400italic,300,600,700,800&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+		<script src="js/phaser.js"></script>
+		<script src="js/game.js"></script>
+		<script src="js/angular.min.js"></script>
+		<style>
+			body {
+				background-color: #f1f1f1;
+				font-family: 'Open Sans', sans-serif;
+				font-size: 13px;
+			}
+			
+			#content, #page {
+				padding-left: 0;
+				padding-right: 0;
+				margin-left: auto;
+				margin-right: auto;
+				display: block;
+				width: 800px;
+			}
+			
+			.column {
+				min-width: 80px;
+				float: left;
+				margin-right: 10px;
+				font-weight: bold;
+			}
+			
+			.row {
+				display: block;
+				width: 100%;
+				height: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="page">
+			<div id="content"></div>
+			<div ng-app="" ng-init="nValue=90; kaValue=0.2; kdValue=1; ksValue=1; aColor='#8078e4'; dColor='#ff0000'; sColor='#ffffff';">
+				<p class="row">
+					<span class="column">n</span>
+					<span class="column"><input ng-model="nValue" type="range" id="nSlider" min="10" max="100" step="10" /></span>
+					<span class="column"><input ng-model="nValue" type="text" /></span>
+				</p>
+				<p class="row">
+					<span class="column">Ambient</span>
+					<span class="column"><input ng-model="kaValue" type="range" id="kaSlider" min="0" max="1" step="0.1" /></span>
+					<span class="column"><input ng-model="kaValue" type="text" /></span>
+					<span class="column"><input ng-model="aColor" type="color" id="aColor" /></span>
+				</p>
+				<p class="row">
+					<span class="column">Diffuse</span>
+					<span class="column"><input ng-model="kdValue" type="range" id="kdSlider"min="0" max="1" step="0.1" /></span>
+					<span class="column"><input ng-model="kdValue" type="text" /></span>
+					<span class="column"><input ng-model="dColor" type="color" id="dColor" /></span>
+				</p>
+				<p class="row">
+					<span class="column">Specular</span>
+					<span class="column"><input ng-model="ksValue" type="range" id="ksSlider" min="0" max="1" step="0.1" /></span>
+					<span class="column"><input ng-model="ksValue" type="text" /></span>
+					<span class="column"><input ng-model="sColor" type="color" id="sColor" /></span>
+				</p>
+			</div>
+		</div>
+	</body>
+</html>
